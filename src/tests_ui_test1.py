@@ -4,7 +4,7 @@ import random
 import string
 
 
-class TestTestCase(TeleniumTestCase):
+class TestBitMessageApp(TeleniumTestCase):
     cmd_entrypoint = [u'/home/cis/peterwork_new/PyBitmessage/src/main.py']
 
     def runTest(self):
@@ -29,13 +29,29 @@ class TestTestCase(TeleniumTestCase):
         # return ''.join(random.choice(letters) for i in range(stringLength))
         letters = string.ascii_letters
         return ''.join(random.choice(letters) for i in range(10))
+	
+    def test_create_screen(self):
+
+        # TYPE-OR-SELECT-SENDER-ADDRESS
+       self.cli.wait_click(u'/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Create[0]/DropDownWidget[1]/ScrollView[0]/BoxLayout[0]/BoxLayout[4]/MDTextField[1]')
+       # SELECT
+       self.cli.wait_click(u'/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Create[0]/DropDownWidget[1]/ScrollView[0]/BoxLayout[0]/BoxLayout[4]/BoxLayout[0]/CustomSpinner[0]')
+       #TYPE-OR-SCAN-OR-SELECT-CODE-FOR-RECEIPINT-ADDRESS
+       self.cli.wait_click(u'/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Create[0]/DropDownWidget[1]/ScrollView[0]/BoxLayout[0]/BoxLayout[3]/MyTextInput[1]')
+       # 
+       self.cli.wait_click(u'/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Create[0]/DropDownWidget[1]/ScrollView[0]/BoxLayout[0]/BoxLayout[3]/RV[0]')
+       # SELECT
+       self.cli.wait_click(u'/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Create[0]/DropDownWidget[1]/ScrollView[0]/BoxLayout[0]/MDTextField[2]')
+       # BODY
+       self.cli.wait_click(u'/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Create[0]/DropDownWidget[1]/ScrollView[0]/BoxLayout[0]/MDTextField[1]')
+	
         
 
-
+    
 if __name__ == '__main__':
     TeleniumTestCase.start_process()
-    TestTestCase().runTest()
-    TestTestCase().test_press_button()
-    TestTestCase().test_next_button()
+    TestBitMessageApp().runTest()
+    TestBitMessageApp().test_press_button()
+    TestBitMessageApp().test_next_button()
 
 
