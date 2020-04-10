@@ -1,0 +1,88 @@
+#:import OneLineListItem kivymd.list.OneLineListItem
+#:import MDTextField kivymd.textfields.MDTextField
+#:import get_color_from_hex kivy.utils.get_color_from_hex
+#:import colors kivymd.color_definitions.colors
+#:import MDTabbedPanel kivymd.tabs.MDTabbedPanel
+#:import MDTab kivymd.tabs.MDTab
+#:import MDFloatingActionButton kivymd.button.MDFloatingActionButton
+#:import Factory kivy.factory.Factory
+#:import MDScrollViewRefreshLayout kivymd.refreshlayout.MDScrollViewRefreshLayout
+#:import MDSpinner kivymd.spinner.MDSpinner
+#:import NoTransition kivy.uix.screenmanager.NoTransition
+#:import MDSeparator kivymd.card.MDSeparator
+
+#:set color_button (0.784, 0.443, 0.216, 1)  # brown
+#:set color_button_pressed (0.659, 0.522, 0.431, 1)  # darker brown
+#:set color_font   (0.957, 0.890, 0.843, 1)  # off white
+
+<MyNavigationDrawerIconButton@NavigationDrawerIconButton>:
+    icon: 'checkbox-blank-circle'
+
+<ContentNavigationDrawer@Navigatorss>:
+    drawer_logo: './images/drawer_logo1.png'
+    NavigationDrawerDivider:
+    NavigationDrawerSubheader:
+        text: "Accounts"
+    NavigationDrawerIconButton: 
+        text: "new address"
+        icon:'account-plus'
+        on_release: app.root.ids.scr_mngr.current = 'test1'
+    NavigationDrawerIconButton: 
+        text: "Network Status"
+        icon:'server-network'
+        on_release: app.root.ids.scr_mngr.current = 'test2'
+    NavigationDrawerIconButton: 
+        text: "My Addresses"
+        icon:'account-multiple'
+        on_release: app.root.ids.scr_mngr.current = 'test3'
+
+NavigationLayout:
+    id: nav_layout
+
+    ContentNavigationDrawer:
+        id: nav_drawer
+
+    FloatLayout:
+        id: float_box
+        BoxLayout:
+            id: box_layout
+            orientation: 'vertical'
+            Toolbar:
+                id: toolbar
+                # title: 'TTTTTTTT'
+                opacity: 1
+                disabled: False
+                md_bg_color: app.theme_cls.primary_color
+                background_palette: 'Primary'
+                background_hue: '500'
+                left_action_items: [['menu', lambda x: app.root.toggle_nav_drawer()]]
+                right_action_items: [['account-plus', lambda x: None]]
+
+            ScreenManager:
+                id: scr_mngr
+                Test1:
+                    id:sc1
+                Test2:
+                    id:sc2
+                Test3:
+                    id:sc3
+
+ 
+<Test1>:
+    name: 'test1'
+    Label:
+        text:"I am in Test1"
+        color: 0,0,0,1
+ 
+<Test2>:
+    name: 'test2'
+    Label:
+        text:"I am in Test2"
+        color: 0,0,0,1
+ 
+<Test3>:
+    name: 'test3'
+    Label:
+        text:"I am in Test3"
+        color: 0,0,0,1
+ 
