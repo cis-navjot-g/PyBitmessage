@@ -152,8 +152,7 @@ class Inbox(Screen):
         for item in data:
             meny = TwoLineAvatarIconListItem(
                 text=item['text'], secondary_text=item['secondary_text'],
-                theme_text_color='Custom',
-                text_color=NavigateApp().theme_cls.primary_color)
+                theme_text_color='Custom')
             meny.add_widget(AvatarSampleWidget(
                 source='./images/text_images/{}.png'.format(
                     avatarImageFirstLetter(item['secondary_text'].strip()))))
@@ -300,6 +299,7 @@ class MyAddress(Screen):
 
     def init_ui(self, dt=0):
         """Clock schdule for method Myaddress accounts"""
+
         self.addresses_list = state.kivyapp.variable_1
         if state.searcing_text:
             self.ids.refresh_layout.scroll_y = 1.0
@@ -341,8 +341,7 @@ class MyAddress(Screen):
         for item in data:
             meny = TwoLineAvatarIconListItem(
                 text=item['text'], secondary_text=item['secondary_text'],
-                theme_text_color='Custom',
-                text_color=NavigateApp().theme_cls.primary_color)
+                theme_text_color='Custom')
             meny.add_widget(AvatarSampleWidget(
                 source='./images/text_images/{}.png'.format(
                     avatarImageFirstLetter(item['text'].strip()))))
@@ -449,8 +448,7 @@ class AddressBook(Screen):
         """Creating the mdList"""
         for item in self.queryreturn[start_index:end_index]:
             meny = TwoLineAvatarIconListItem(
-                text=item[0], secondary_text=item[1], theme_text_color='Custom',
-                text_color=NavigateApp().theme_cls.primary_color)
+                text=item[0], secondary_text=item[1], theme_text_color='Custom')
             meny.add_widget(AvatarSampleWidget(
                 source='./images/text_images/{}.png'.format(
                     avatarImageFirstLetter(item[0].strip()))))
@@ -901,8 +899,7 @@ class Sent(Screen):
         for item in data:
             meny = TwoLineAvatarIconListItem(
                 text=item['text'], secondary_text=item['secondary_text'],
-                theme_text_color='Custom',
-                text_color=NavigateApp().theme_cls.primary_color)
+                theme_text_color='Custom')
             meny.add_widget(AvatarSampleWidget(
                 source='./images/text_images/{}.png'.format(
                     avatarImageFirstLetter(item['secondary_text'].strip()))))
@@ -1103,8 +1100,7 @@ class Trash(Screen):
                 secondary_text=item[2][:50] + '........' if len(
                     item[2]) >= 50 else (item[2] + ',' + item[3].replace(
                         '\n', ''))[0:50] + '........',
-                theme_text_color='Custom',
-                text_color=NavigateApp().theme_cls.primary_color)
+                theme_text_color='Custom')
             img_latter = './images/text_images/{}.png'.format(
                 item[2][0].upper() if (item[2][0].upper() >= 'A' and item[
                     2][0].upper() <= 'Z') else '!')
@@ -2151,8 +2147,7 @@ class Draft(Screen):
         for item in data:
             meny = TwoLineAvatarIconListItem(
                 text='Draft', secondary_text=item['text'],
-                theme_text_color='Custom',
-                text_color=NavigateApp().theme_cls.primary_color)
+                theme_text_color='Custom')
             meny.add_widget(AvatarSampleWidget(
                 source='./images/avatar.png'))
             meny.bind(on_press=partial(
@@ -2325,8 +2320,7 @@ class Allmails(Screen):
                     item[2]) >= 50 else (
                         item[2] + ',' + item[3].replace(
                             '\n', ''))[0:50] + '........',
-                theme_text_color='Custom',
-                text_color=NavigateApp().theme_cls.primary_color)
+                theme_text_color='Custom')
             meny.add_widget(AvatarSampleWidget(
                 source='./images/text_images/{}.png'.format(
                     avatarImageFirstLetter(item[2].strip()))))
