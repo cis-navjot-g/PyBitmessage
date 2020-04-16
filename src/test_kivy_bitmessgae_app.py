@@ -53,4 +53,5 @@ if __name__ == '__main__':
     obj_1.test_serach_sent_messages()
     obj_1.test_show_sent_message_body()
     obj_1.test_delete_sent_message_body()
-    obj_1.test_delete_sent_message_from_list()
+    obj_1.test_archive_sent_message_from_list()
+   
