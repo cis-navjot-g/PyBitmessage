@@ -160,7 +160,7 @@ android.ndk = 17c
 #android.add_activites = com.example.ExampleActivity
 
 # (str) python-for-android branch to use, defaults to stable
-p4a.branch = master
+p4a.branch = release-2019.07.08
 
 # (str) OUYA Console category. Should be one of GAME or APP
 # If you leave this blank, OUYA support will not be enabled
