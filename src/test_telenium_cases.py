@@ -1,5 +1,8 @@
 from telenium.tests import TeleniumTestCase
 import time
+import random
+import string
+import  os
 
 
 class TestSelectAddress(TeleniumTestCase):
@@ -11,12 +14,8 @@ class TestSelectAddress(TeleniumTestCase):
         time.sleep(8)
         self.cli.execute('app.root.toggle_nav_drawer()')
         time.sleep(5)
-        # if self.cli.execute('app.root.toggle_nav_drawer()'):
-            # time.sleep(5)
         self.cli.click_on('//NavigationDrawerIconButton[0]')
         time.sleep(5)
-        # self.cli.wait_click('//NavigationDrawerIconButton[0]/CustomSpinner[0]')
-        # time.sleep(3)
         self.cli.click_on('//NavigationDrawerIconButton[1]')
 
 
@@ -103,9 +102,9 @@ class TestSentMessage(TeleniumTestCase):
     def test_delete_sent_message_body(self):
         print("------------Delete messgae from message body option-----------------.")
         time.sleep(2)
-        self.cli.click_on('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Sent[0]/BoxLayout[0]/BoxLayout[0]/ScrollView[0]/MDList[0]/Carousel[0]/RelativeLayout[2]/TwoLineAvatarIconListItem[0]/BoxLayout[2]')
+        self.cli.click_on('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Sent[0]/BoxLayout[0]/BoxLayout[0]/ScrollView[0]/MDList[0]/Carousel[0]/RelativeLayout[2]/CustomTwoLineAvatarIconListItem[0]/BoxLayout[2]')
         # time.sleep(2)
-        # self.cli.click_on('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Sent[0]/BoxLayout[0]/BoxLayout[0]/ScrollView[0]/MDList[0]/Carousel[0]/RelativeLayout[2]/TwoLineAvatarIconListItem[0]/BoxLayout[1]')
+        # self.cli.click_on('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Sent[0]/BoxLayout[0]/BoxLayout[0]/ScrollView[0]/MDList[0]/Carousel[0]/RelativeLayout[2]/CustomTwoLineAvatarIconListItem[0]/BoxLayout[1]')
         time.sleep(3)
         # self.cli.click_on('//MDIconButton[1]')
         self.cli.click_on('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/Toolbar[0]/BoxLayout[2]/MDIconButton[0]/MDLabel[0]')
@@ -114,7 +113,7 @@ class TestSentMessage(TeleniumTestCase):
     def test_delete_sent_message_from_list(self):
         print("-----------Delete messgae from message list-------------.")
         time.sleep(5)
-        self.cli.drag('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Sent[0]/BoxLayout[0]/BoxLayout[0]/ScrollView[0]/MDList[0]/Carousel[0]/RelativeLayout[2]/TwoLineAvatarIconListItem[0]/BoxLayout[1]','/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Sent[0]/BoxLayout[0]/BoxLayout[0]/ScrollView[0]/MDList[0]/Carousel[0]/RelativeLayout[1]/Button[0]',1)
+        self.cli.drag('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Sent[0]/BoxLayout[0]/BoxLayout[0]/ScrollView[0]/MDList[0]/Carousel[0]/RelativeLayout[2]/CustomTwoLineAvatarIconListItem[0]/BoxLayout[1]','/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Sent[0]/BoxLayout[0]/BoxLayout[0]/ScrollView[0]/MDList[0]/Carousel[0]/RelativeLayout[1]/Button[0]',1)
         time.sleep(4)
         self.cli.click_on('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Sent[0]/BoxLayout[0]/BoxLayout[0]/ScrollView[0]/MDList[0]/Carousel[0]/RelativeLayout[1]/Button[0]')
 
@@ -122,8 +121,52 @@ class TestSentMessage(TeleniumTestCase):
         print("-----------Archive Message From Message List-----------")
         # Swipe-Arrchive-Sent-Message
         time.sleep(7)
-        self.cli.drag('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Sent[0]/BoxLayout[0]/BoxLayout[0]/ScrollView[0]/MDList[0]/Carousel[0]/RelativeLayout[2]/TwoLineAvatarIconListItem[0]/BoxLayout[0]','/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Sent[0]/BoxLayout[0]/BoxLayout[0]/ScrollView[0]/MDList[0]/Carousel[0]/RelativeLayout[0]/Button[0]',1)
+        self.cli.drag('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Sent[0]/BoxLayout[0]/BoxLayout[0]/ScrollView[0]/MDList[0]/Carousel[0]/RelativeLayout[2]/CustomTwoLineAvatarIconListItem[0]/BoxLayout[0]','/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Sent[0]/BoxLayout[0]/BoxLayout[0]/ScrollView[0]/MDList[0]/Carousel[0]/RelativeLayout[0]/Button[0]',1)
         time.sleep(2)
         self.cli.click_on('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Sent[0]/BoxLayout[0]/BoxLayout[0]/ScrollView[0]/MDList[0]/Carousel[0]/RelativeLayout[1]/Button[0]')
         time.sleep(4)
 
+class TestDraftMessage(TeleniumTestCase):
+
+    def runTest(self):
+        print(self,"-------------Welcome To Kivy Testing Application Fourth Page-------------")
+
+    def test_select_draft_message(self):
+        print("----------Show Draft Message--------------------")
+        # OPEN NAVIGATION-DRAWER
+        time.sleep(4)
+        self.cli.execute('app.root.toggle_nav_drawer()')
+        time.sleep(2)
+        # OPEN INBOX SCREEN
+        self.cli.click_on('//NavigationDrawerIconButton[1]')
+        time.sleep(2)
+        # CLICK ON PLUS ICON BUTTON
+        self.cli.click_on('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Inbox[0]/ComposerButton[0]/MDFloatingActionButton[0]/MDLabel[0]')
+        time.sleep(3)
+        # SELECT - TO ADDRESS
+        self.cli.click_on('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Create[0]/DropDownWidget[0]/ScrollView[0]/BoxLayout[0]/BoxLayout[0]/BoxLayout[0]/CustomSpinner[0]/ArrowImg[0]')
+        time.sleep(2)
+        self.cli.click_on('//MyTextInput[0]')
+        time.sleep(3)
+        # ADD FROM MESSAGE
+        self.cli.setattr('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Create[0]/DropDownWidget[0]/ScrollView[0]/BoxLayout[0]/BoxLayout[1]/MyTextInput[0]',"text",'BM-2cSsuH1bUWBski8bvdqnK2DivMqQCeQA1J')
+        time.sleep(3)
+        # CLICK BACK-BUTTON
+        self.cli.click_on('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/Toolbar[0]/BoxLayout[0]/MDIconButton[0]/MDLabel[0]')
+        time.sleep(5)
+        self.cli.click_on('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Inbox[0]/ComposerButton[0]/MDFloatingActionButton[0]/MDLabel[0]')
+        time.sleep(3)
+        # SELECT - TO ADDRESS
+        self.cli.click_on('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Create[0]/DropDownWidget[0]/ScrollView[0]/BoxLayout[0]/BoxLayout[0]/BoxLayout[0]/CustomSpinner[0]/ArrowImg[0]')
+        time.sleep(1)
+        self.cli.click_on('//MyTextInput[0]')
+        time.sleep(3)
+        # ADD FROM MESSAGE
+        self.cli.setattr('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Create[0]/DropDownWidget[0]/ScrollView[0]/BoxLayout[0]/BoxLayout[1]/MyTextInput[0]',"text",'BM-2cSsuH1bUWBski8bvdqnK2DivMqQCeQA1J')
+        time.sleep(4)
+        self.cli.setattr('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Create[0]/DropDownWidget[0]/ScrollView[0]/BoxLayout[0]/MDTextField[0]','text','Another Draft message')
+        time.sleep(5)
+        # CLICK BACK-BUTTON
+        self.cli.click_on('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/Toolbar[0]/BoxLayout[0]/MDIconButton[0]/MDLabel[0]')
+        time.sleep(4)
+   

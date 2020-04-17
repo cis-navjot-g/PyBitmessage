@@ -71,6 +71,11 @@ def toast(text):
     toast(text)
     return
 
+class CustomTwoLineAvatarIconListItem(TwoLineAvatarIconListItem):
+
+    def __init__(self, **kwargs):
+        super(CustomTwoLineAvatarIconListItem, self).__init__(**kwargs)
+        self.text_color=[0.12, 0.58, 0.95, 1]
 
 class Navigatorss(MDNavigationDrawer):
     """Navigator class (image, title and logo)"""
@@ -150,7 +155,7 @@ class Inbox(Screen):
         """This method is used to create the mdList"""
         total_message = len(self.ids.ml.children)
         for item in data:
-            meny = TwoLineAvatarIconListItem(
+            meny = CustomTwoLineAvatarIconListItem(
                 text=item['text'], secondary_text=item['secondary_text'],
                 theme_text_color='Custom')
             meny.add_widget(AvatarSampleWidget(
@@ -339,7 +344,7 @@ class MyAddress(Screen):
                 'text': BMConfigParser().get(address, 'label'),
                 'secondary_text': address})
         for item in data:
-            meny = TwoLineAvatarIconListItem(
+            meny = CustomTwoLineAvatarIconListItem(
                 text=item['text'], secondary_text=item['secondary_text'],
                 theme_text_color='Custom')
             meny.add_widget(AvatarSampleWidget(
@@ -447,7 +452,7 @@ class AddressBook(Screen):
     def set_mdList(self, start_index, end_index):
         """Creating the mdList"""
         for item in self.queryreturn[start_index:end_index]:
-            meny = TwoLineAvatarIconListItem(
+            meny = CustomTwoLineAvatarIconListItem(
                 text=item[0], secondary_text=item[1], theme_text_color='Custom')
             meny.add_widget(AvatarSampleWidget(
                 source='./images/text_images/{}.png'.format(
@@ -897,7 +902,7 @@ class Sent(Screen):
         """This method is used to create the mdList"""
         total_sent_msg = len(self.ids.ml.children)
         for item in data:
-            meny = TwoLineAvatarIconListItem(
+            meny = CustomTwoLineAvatarIconListItem(
                 text=item['text'], secondary_text=item['secondary_text'],
                 theme_text_color='Custom')
             meny.add_widget(AvatarSampleWidget(
@@ -1095,7 +1100,7 @@ class Trash(Screen):
         """This method is used to create the mdlist"""
         total_trash_msg = len(self.ids.ml.children)
         for item in self.trash_messages:
-            meny = TwoLineAvatarIconListItem(
+            meny = CustomTwoLineAvatarIconListItem(
                 text=item[1],
                 secondary_text=item[2][:50] + '........' if len(
                     item[2]) >= 50 else (item[2] + ',' + item[3].replace(
@@ -2145,7 +2150,7 @@ class Draft(Screen):
                             third_text) > 25 else third_text,
                 'ackdata': mail[5]})
         for item in data:
-            meny = TwoLineAvatarIconListItem(
+            meny = CustomTwoLineAvatarIconListItem(
                 text='Draft', secondary_text=item['text'],
                 theme_text_color='Custom')
             meny.add_widget(AvatarSampleWidget(
@@ -2314,7 +2319,7 @@ class Allmails(Screen):
         """This method is used to create mdList for allmaills"""
         data_exist = len(self.ids.ml.children)
         for item in self.all_mails:
-            meny = TwoLineAvatarIconListItem(
+            meny = CustomTwoLineAvatarIconListItem(
                 text=item[1],
                 secondary_text=item[2][:50] + '........' if len(
                     item[2]) >= 50 else (

@@ -17,7 +17,9 @@ class TestBitMessageApp(TeleniumTestCase):
     def test_login_screen(self):
         print(self,"---------------------------")
         time.sleep(5)
-        # if not os.path.isdir("/home/cis/.config/PyBitmessage"):
+        # if os.path.isdir("/home/cis/.config/PyBitmessage"):
+        #     pass
+        # else:    
         print("first screen")
         self.cli.drag("/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Login[0]/ScrollView[0]/BoxLayout[0]/MDCheckbox[0]","/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Login[0]/ScrollView[0]/BoxLayout[0]/BoxLayout[0]",2)
         time.sleep(5)
@@ -25,7 +27,9 @@ class TestBitMessageApp(TeleniumTestCase):
         time.sleep(5)
 
     def test_random_screen(self):
-        # if not os.path.isdir("/home/cis/.config/PyBitmessage"):    
+        # if os.path.isdir("/home/cis/.config/PyBitmessage"):
+        #     pass
+        # else:                        
         self.cli.setattr(u'/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Random[0]/ScrollView[0]/BoxLayout[0]/MDTextField[0]', "text", self.generate_random_string())
         time.sleep(5)
         self.cli.wait_click(u'/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Random[0]/ScrollView[0]/BoxLayout[0]/BoxLayout[0]/AnchorLayout[0]/MDRaisedButton[0]/MDLabel[0]')    
@@ -36,6 +40,9 @@ class TestBitMessageApp(TeleniumTestCase):
         # return ''.join(random.choice(letters) for i in range(stringLength))
         letters = string.ascii_letters
         return ''.join(random.choice(letters) for i in range(10))
+
+        # lettersAndDigits = string.ascii_letters + string.digits
+        # return ''.join((random.choice(lettersAndDigits) for i in range(10)))
 
   
     
@@ -54,4 +61,6 @@ if __name__ == '__main__':
     obj_1.test_show_sent_message_body()
     obj_1.test_delete_sent_message_body()
     obj_1.test_archive_sent_message_from_list()
-   
+    obj_2=test_telenium_cases.TestDraftMessage()
+    obj_2.test_select_draft_message()
+    
