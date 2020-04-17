@@ -72,6 +72,13 @@ def toast(text):
     return
 
 
+class CustomAvatarIconListItem(TwoLineAvatarIconListItem):
+
+    def __init__(self, **kwargs):
+        super(CustomAvatarIconListItem, self).__init__(**kwargs)
+        self.text_color=[0.12, 0.58, 0.95, 1]
+
+
 class Navigatorss(MDNavigationDrawer):
     """Navigator class (image, title and logo)"""
     image_source = StringProperty('images/qidenticon_two.png')
@@ -150,10 +157,10 @@ class Inbox(Screen):
         """This method is used to create the mdList"""
         total_message = len(self.ids.ml.children)
         for item in data:
-            meny = TwoLineAvatarIconListItem(
+            meny = CustomAvatarIconListItem(
                 text=item['text'], secondary_text=item['secondary_text'],
                 theme_text_color='Custom',
-                text_color=NavigateApp().theme_cls.primary_color)
+                )
             meny.add_widget(AvatarSampleWidget(
                 source='./images/text_images/{}.png'.format(
                     avatarImageFirstLetter(item['secondary_text'].strip()))))
@@ -339,10 +346,9 @@ class MyAddress(Screen):
                 'text': BMConfigParser().get(address, 'label'),
                 'secondary_text': address})
         for item in data:
-            meny = TwoLineAvatarIconListItem(
+            meny = CustomAvatarIconListItem(
                 text=item['text'], secondary_text=item['secondary_text'],
-                theme_text_color='Custom',
-                text_color=NavigateApp().theme_cls.primary_color)
+                theme_text_color='Custom')
             meny.add_widget(AvatarSampleWidget(
                 source='./images/text_images/{}.png'.format(
                     avatarImageFirstLetter(item['text'].strip()))))
@@ -448,9 +454,8 @@ class AddressBook(Screen):
     def set_mdList(self, start_index, end_index):
         """Creating the mdList"""
         for item in self.queryreturn[start_index:end_index]:
-            meny = TwoLineAvatarIconListItem(
-                text=item[0], secondary_text=item[1], theme_text_color='Custom',
-                text_color=NavigateApp().theme_cls.primary_color)
+            meny = CustomAvatarIconListItem(
+                text=item[0], secondary_text=item[1], theme_text_color='Custom')
             meny.add_widget(AvatarSampleWidget(
                 source='./images/text_images/{}.png'.format(
                     avatarImageFirstLetter(item[0].strip()))))
@@ -899,10 +904,9 @@ class Sent(Screen):
         """This method is used to create the mdList"""
         total_sent_msg = len(self.ids.ml.children)
         for item in data:
-            meny = TwoLineAvatarIconListItem(
+            meny = CustomAvatarIconListItem(
                 text=item['text'], secondary_text=item['secondary_text'],
-                theme_text_color='Custom',
-                text_color=NavigateApp().theme_cls.primary_color)
+                theme_text_color='Custom')
             meny.add_widget(AvatarSampleWidget(
                 source='./images/text_images/{}.png'.format(
                     avatarImageFirstLetter(item['secondary_text'].strip()))))
@@ -1098,13 +1102,12 @@ class Trash(Screen):
         """This method is used to create the mdlist"""
         total_trash_msg = len(self.ids.ml.children)
         for item in self.trash_messages:
-            meny = TwoLineAvatarIconListItem(
+            meny = CustomAvatarIconListItem(
                 text=item[1],
                 secondary_text=item[2][:50] + '........' if len(
                     item[2]) >= 50 else (item[2] + ',' + item[3].replace(
                         '\n', ''))[0:50] + '........',
-                theme_text_color='Custom',
-                text_color=NavigateApp().theme_cls.primary_color)
+                theme_text_color='Custom')
             img_latter = './images/text_images/{}.png'.format(
                 item[2][0].upper() if (item[2][0].upper() >= 'A' and item[
                     2][0].upper() <= 'Z') else '!')
@@ -1228,15 +1231,6 @@ class NavigateApp(App):  # pylint: disable=too-many-public-methods
     title = "PyBitmessage"
     imgstatus = False
     count = 0
-    menu_items = [
-        {'viewclass': 'MDMenuItem', 'text': 'Example item'},
-        {'viewclass': 'MDMenuItem', 'text': 'Example item'},
-        {'viewclass': 'MDMenuItem', 'text': 'Example item'},
-        {'viewclass': 'MDMenuItem', 'text': 'Example item'},
-        {'viewclass': 'MDMenuItem', 'text': 'Example item'},
-        {'viewclass': 'MDMenuItem', 'text': 'Example item'},
-        {'viewclass': 'MDMenuItem', 'text': 'Example item'},
-    ]
 
     def build(self):
         """Method builds the widget"""
@@ -2149,10 +2143,9 @@ class Draft(Screen):
                             third_text) > 25 else third_text,
                 'ackdata': mail[5]})
         for item in data:
-            meny = TwoLineAvatarIconListItem(
+            meny = CustomAvatarIconListItem(
                 text='Draft', secondary_text=item['text'],
-                theme_text_color='Custom',
-                text_color=NavigateApp().theme_cls.primary_color)
+                theme_text_color='Custom')
             meny.add_widget(AvatarSampleWidget(
                 source='./images/avatar.png'))
             meny.bind(on_press=partial(
@@ -2319,7 +2312,7 @@ class Allmails(Screen):
         """This method is used to create mdList for allmaills"""
         data_exist = len(self.ids.ml.children)
         for item in self.all_mails:
-            meny = TwoLineAvatarIconListItem(
+            meny = CustomAvatarIconListItem(
                 text=item[1],
                 secondary_text=item[2][:50] + '........' if len(
                     item[2]) >= 50 else (
