@@ -3,8 +3,9 @@ from telenium.tests import TeleniumTestCase
 import random
 import string
 import  os
-import test_telenium_cases 
-
+import test_telenium_cases
+from random import choice
+from string import ascii_lowercase
 
 
 class TestBitMessageApp(TeleniumTestCase):
@@ -29,29 +30,28 @@ class TestBitMessageApp(TeleniumTestCase):
     def test_random_screen(self):
         # if os.path.isdir("/home/cis/.config/PyBitmessage"):
         #     pass
-        # else:                        
-        self.cli.setattr(u'/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Random[0]/ScrollView[0]/BoxLayout[0]/MDTextField[0]', "text", self.generate_random_string())
-        time.sleep(5)
+        # else:
+        random_label = ""
+        for _ in range(10):
+            random_label += choice(ascii_lowercase)                                  
+            self.cli.setattr(u'/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Random[0]/ScrollView[0]/BoxLayout[0]/MDTextField[0]', "text", random_label)
+            time.sleep(1)
         self.cli.wait_click(u'/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Random[0]/ScrollView[0]/BoxLayout[0]/BoxLayout[0]/AnchorLayout[0]/MDRaisedButton[0]/MDLabel[0]')    
         time.sleep(5)
 
-    def generate_random_string(self):
-        """Generate a random string of fixed length """
-        # return ''.join(random.choice(letters) for i in range(stringLength))
-        letters = string.ascii_letters
-        return ''.join(random.choice(letters) for i in range(10))
-
-        # lettersAndDigits = string.ascii_letters + string.digits
-        # return ''.join((random.choice(lettersAndDigits) for i in range(10)))
-
-  
+ 
     
 if __name__ == '__main__':
     TeleniumTestCase.start_process()
     TestBitMessageApp().runTest()
+    print("==================start from first screen=====================")
     TestBitMessageApp().test_login_screen()
     TestBitMessageApp().test_random_screen()
+    obj_11=test_telenium_cases.TestCreateNewAddress()
+    obj_11.test_create_new_address()
+    TestBitMessageApp().test_random_screen()
     obj=test_telenium_cases.TestSelectAddress()
+    obj.test_select_second_address()
     obj.test_select_address()
     obj_1=test_telenium_cases.TestSentMessage()
     obj_1.test_select_sent()
@@ -63,4 +63,5 @@ if __name__ == '__main__':
     obj_1.test_archive_sent_message_from_list()
     obj_2=test_telenium_cases.TestDraftMessage()
     obj_2.test_select_draft_message()
-    
+    # obj_11.test_random_screen()
+        
