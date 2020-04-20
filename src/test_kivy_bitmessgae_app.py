@@ -37,18 +37,17 @@ class TestBitMessageApp(TeleniumTestCase):
             self.cli.setattr(u'/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Random[0]/ScrollView[0]/BoxLayout[0]/MDTextField[0]', "text", random_label)
             time.sleep(1)
         self.cli.wait_click(u'/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Random[0]/ScrollView[0]/BoxLayout[0]/BoxLayout[0]/AnchorLayout[0]/MDRaisedButton[0]/MDLabel[0]')    
-        time.sleep(5)
+        time.sleep(8)
 
- 
-    
+     
 if __name__ == '__main__':
     TeleniumTestCase.start_process()
     TestBitMessageApp().runTest()
     print("==================start from first screen=====================")
     TestBitMessageApp().test_login_screen()
     TestBitMessageApp().test_random_screen()
-    obj_11=test_telenium_cases.TestCreateNewAddress()
-    obj_11.test_create_new_address()
+    obj_3=test_telenium_cases.TestCreateNewAddress()
+    obj_3.test_create_new_address()
     TestBitMessageApp().test_random_screen()
     obj=test_telenium_cases.TestSelectAddress()
     obj.test_select_second_address()
@@ -63,5 +62,7 @@ if __name__ == '__main__':
     obj_1.test_archive_sent_message_from_list()
     obj_2=test_telenium_cases.TestDraftMessage()
     obj_2.test_select_draft_message()
-    # obj_11.test_random_screen()
+    obj_2.test_edit_draft_messgae()
+    obj_2.test_delete_draft_message()
+
         

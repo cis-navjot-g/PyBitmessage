@@ -3,7 +3,7 @@ import time
 import random
 import string
 import  os
-
+data=[]
 
 class TestCreateNewAddress(TeleniumTestCase):
 
@@ -14,12 +14,11 @@ class TestCreateNewAddress(TeleniumTestCase):
         time.sleep(5)
         self.cli.execute('app.root.toggle_nav_drawer()')
         time.sleep(4)
-        self.cli.drag("//NavigationDrawerSubheader[@text=\"All labels\"]","//NavigationDrawerIconButton[@text=\"All Mails\"]",2)
+        self.cli.drag("//NavigationDrawerSubheader[@text=\"All labels\"]","//NavigationDrawerIconButton[@text=\"All Mails\"]",1)
         time.sleep(3)
         self.cli.click_on('//NavigationDrawerIconButton[10]')
         time.sleep(4)
         self.cli.wait_click(u'/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Login[0]/ScrollView[0]/BoxLayout[0]/BoxLayout[2]/AnchorLayout[0]/MDRaisedButton[0]/MDLabel[0]')
-
 
 class TestSelectAddress(TeleniumTestCase):
 
@@ -27,23 +26,22 @@ class TestSelectAddress(TeleniumTestCase):
         print(self,"-------------Welcome To Kivy Testing Application second Page-------------")
 
     def test_select_second_address(self):
-        time.sleep(8)
-        data=[]
+        global data 
+        time.sleep(5)
         second_address=self.cli.getattr("//CustomTwoLineAvatarIconListItem[0]","secondary_text")
         data.append(second_address)
-        return data
+        return data[0]
 
     def test_select_address(self):
-        time.sleep(6)
+        time.sleep(8)
         self.cli.execute('app.root.toggle_nav_drawer()')
-        time.sleep(5)
-        self.cli.drag("//NavigationDrawerSubheader[@text=\"All labels\"]","//NavigationDrawerIconButton[@text=\"Address Book\"]",2)
         time.sleep(3)
+        self.cli.drag("//NavigationDrawerSubheader[@text=\"All labels\"]","//NavigationDrawerIconButton[@text=\"Address Book\"]",2)
+        time.sleep(5)
         self.cli.click_on('//NavigationDrawerIconButton[0]')
         time.sleep(5)
-        var = cli.getattr('//CustomSpinner[0]',"text")
-        
-
+        self.cli.click_on('//NavigationDrawerIconButton[1]')
+        time.sleep(5)
 
 class TestSentMessage(TestSelectAddress):
 
@@ -60,11 +58,10 @@ class TestSentMessage(TestSelectAddress):
         self.cli.click_on('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Inbox[0]/ComposerButton[0]/MDFloatingActionButton[0]/MDLabel[0]')
         time.sleep(4)
         self.cli.click_on('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Create[0]/DropDownWidget[0]/ScrollView[0]/BoxLayout[0]/BoxLayout[0]/BoxLayout[0]/CustomSpinner[0]/ArrowImg[0]')
-        time.sleep(2)
+        time.sleep(5)
         self.cli.click_on('//MyTextInput[0]')
         time.sleep(3)
-        # TestSelectAddress().test_select_second_address()
-        self.cli.setattr('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Create[0]/DropDownWidget[0]/ScrollView[0]/BoxLayout[0]/BoxLayout[1]/MyTextInput[0]',"text",TestSelectAddress().test_select_second_address())
+        self.cli.setattr('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Create[0]/DropDownWidget[0]/ScrollView[0]/BoxLayout[0]/BoxLayout[1]/MyTextInput[0]',"text",data[0])
         time.sleep(3)
         self.cli.setattr('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Create[0]/DropDownWidget[0]/ScrollView[0]/BoxLayout[0]/MDTextField[0]','text','heyyyyyy')
         time.sleep(3)
@@ -206,3 +203,35 @@ class TestDraftMessage(TeleniumTestCase):
         self.cli.click_on('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/Toolbar[0]/BoxLayout[0]/MDIconButton[0]/MDLabel[0]')
         time.sleep(4)
    
+    def test_edit_draft_messgae(self):
+        print("---------------Edit Draft Message----------------") 
+        # OPEN NAVIGATION-DRAWER
+        self.cli.execute('app.root.toggle_nav_drawer()')
+        time.sleep(4)
+        # OPEN DRAFT SCREEN
+        self.cli.click_on('//NavigationDrawerIconButton[3]')
+        time.sleep(7)
+        # SHOW DRAFT MESSAGE AND SELECT FIRST MESSAGE
+        self.cli.click_on('//Carousel[0]')
+        time.sleep(3)
+        # CLICK EDIT BUTTON
+        self.cli.click_on('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/Toolbar[0]/BoxLayout[2]/MDIconButton[0]/MDLabel[0]')
+        time.sleep(5)
+        self.cli.setattr('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Create[0]/DropDownWidget[0]/ScrollView[0]/BoxLayout[0]/MDTextField[0]','text','draft message')
+        time.sleep(4)
+        self.cli.setattr('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Create[0]/DropDownWidget[0]/ScrollView[0]/BoxLayout[0]/MDTextField[1]','text','Hey , This is draft Message Body')
+        time.sleep(3)
+        self.cli.click_on('//MDIconButton[2]')
+        time.sleep(5)
+        
+    def test_delete_draft_message(self):
+        print("-------------Delete Draft Message-----------------")
+        time.sleep(5)
+        self.cli.execute('app.root.toggle_nav_drawer()')
+        time.sleep(4)
+        self.cli.click_on('//NavigationDrawerIconButton[3]')
+        time.sleep(5)
+        self.cli.click_on('//Carousel[0]')
+        time.sleep(5)
+        self.cli.click_on('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/Toolbar[0]/BoxLayout[2]/MDIconButton[1]/MDLabel[0]')
+        time.sleep(2)
