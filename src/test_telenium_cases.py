@@ -43,6 +43,29 @@ class TestSelectAddress(TeleniumTestCase):
         self.cli.click_on('//NavigationDrawerIconButton[1]')
         time.sleep(5)
 
+class TestInboxMessage(TestSelectAddress):
+
+    def runTest(self):
+        print(self,"-------------Welcome To Kivy Testing Application For Inbox Screen-------------")
+    
+    def test_select_inbox_of_second_address(self):
+        time.sleep(2)
+        self.cli.execute('app.root.toggle_nav_drawer()')
+        time.sleep(5)
+        self.cli.click_on('//NavigationDrawerIconButton[0]')
+        time.sleep(5)
+        self.cli.click_on('//NDBadgeLabel[2]')
+        time.sleep(2)
+
+    def test_show_inbox_message(self):
+        time.sleep(1)
+        self.cli.execute('app.root.toggle_nav_drawer()')
+        time.sleep(4)
+        self.cli.click_on('//CustomTwoLineAvatarIconListItem[0]')
+        time.sleep(3)
+        self.cli.click_on('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/Toolbar[0]/BoxLayout[0]/MDIconButton[0]/MDLabel[0]')
+        time.sleep(3)
+
 class TestSentMessage(TestSelectAddress):
 
     def runTest(self):
@@ -69,7 +92,7 @@ class TestSentMessage(TestSelectAddress):
         for char in "how are you this is message body":
             random_label += char
             self.cli.setattr('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Create[0]/DropDownWidget[0]/ScrollView[0]/BoxLayout[0]/MDTextField[1]','text',random_label)
-            time.sleep(0.5)
+            time.sleep(0.2)
         time.sleep(2)
         self.cli.click_on('//MDIconButton[2]')
         time.sleep(2)
@@ -78,6 +101,10 @@ class TestSentMessage(TestSelectAddress):
         time.sleep(5)       
         self.cli.execute('app.root.toggle_nav_drawer()')
         time.sleep(5)
+        self.cli.click_on('//NavigationDrawerIconButton[0]')
+        time.sleep(5)
+        self.cli.click_on('//NDBadgeLabel[1]')
+        time.sleep(6)
         self.cli.click_on('//NavigationDrawerIconButton[2]')
         time.sleep(2)
 
@@ -94,7 +121,7 @@ class TestSentMessage(TestSelectAddress):
         time.sleep(2)
         self.cli.click_on('//MyTextInput[0]')
         time.sleep(3)
-        self.cli.setattr('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Create[0]/DropDownWidget[0]/ScrollView[0]/BoxLayout[0]/BoxLayout[1]/MyTextInput[0]',"text",'BM-2cSsuH1bUWBski8bvdqnK2DivMqQCeQA1J')
+        self.cli.setattr('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Create[0]/DropDownWidget[0]/ScrollView[0]/BoxLayout[0]/BoxLayout[1]/MyTextInput[0]',"text",data[0])
         time.sleep(3)
         self.cli.setattr('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Create[0]/DropDownWidget[0]/ScrollView[0]/BoxLayout[0]/MDTextField[0]','text','Second')
         time.sleep(3)
@@ -102,10 +129,9 @@ class TestSentMessage(TestSelectAddress):
         for char in "Hey This Is Second Message Body":
             random_label += char
             self.cli.setattr('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Create[0]/DropDownWidget[0]/ScrollView[0]/BoxLayout[0]/MDTextField[1]','text',random_label)
-            time.sleep(0.5)
+            time.sleep(0.2)
         time.sleep(2)
         self.cli.click_on('//MDIconButton[2]')
-        # time.sleep(2)
         time.sleep(5)       
         self.cli.execute('app.root.toggle_nav_drawer()')
         time.sleep(5)
@@ -136,10 +162,7 @@ class TestSentMessage(TestSelectAddress):
         print("------------Delete messgae from message body option-----------------.")
         time.sleep(2)
         self.cli.click_on('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Sent[0]/BoxLayout[0]/BoxLayout[0]/ScrollView[0]/MDList[0]/Carousel[0]/RelativeLayout[2]/CustomTwoLineAvatarIconListItem[0]/BoxLayout[2]')
-        # time.sleep(2)
-        # self.cli.click_on('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Sent[0]/BoxLayout[0]/BoxLayout[0]/ScrollView[0]/MDList[0]/Carousel[0]/RelativeLayout[2]/CustomTwoLineAvatarIconListItem[0]/BoxLayout[1]')
         time.sleep(3)
-        # self.cli.click_on('//MDIconButton[1]')
         self.cli.click_on('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/Toolbar[0]/BoxLayout[2]/MDIconButton[0]/MDLabel[0]')
         time.sleep(5)
 
@@ -182,7 +205,7 @@ class TestDraftMessage(TeleniumTestCase):
         self.cli.click_on('//MyTextInput[0]')
         time.sleep(3)
         # ADD FROM MESSAGE
-        self.cli.setattr('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Create[0]/DropDownWidget[0]/ScrollView[0]/BoxLayout[0]/BoxLayout[1]/MyTextInput[0]',"text",'BM-2cSsuH1bUWBski8bvdqnK2DivMqQCeQA1J')
+        self.cli.setattr('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Create[0]/DropDownWidget[0]/ScrollView[0]/BoxLayout[0]/BoxLayout[1]/MyTextInput[0]',"text",data[0])
         time.sleep(3)
         # CLICK BACK-BUTTON
         self.cli.click_on('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/Toolbar[0]/BoxLayout[0]/MDIconButton[0]/MDLabel[0]')
@@ -195,10 +218,13 @@ class TestDraftMessage(TeleniumTestCase):
         self.cli.click_on('//MyTextInput[0]')
         time.sleep(3)
         # ADD FROM MESSAGE
-        self.cli.setattr('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Create[0]/DropDownWidget[0]/ScrollView[0]/BoxLayout[0]/BoxLayout[1]/MyTextInput[0]',"text",'BM-2cSsuH1bUWBski8bvdqnK2DivMqQCeQA1J')
+        self.cli.setattr('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Create[0]/DropDownWidget[0]/ScrollView[0]/BoxLayout[0]/BoxLayout[1]/MyTextInput[0]',"text",data[0])
         time.sleep(4)
-        self.cli.setattr('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Create[0]/DropDownWidget[0]/ScrollView[0]/BoxLayout[0]/MDTextField[0]','text','Another Draft message')
-        time.sleep(5)
+        random_label=""
+        for char in "Another Draft message":
+            random_label += char
+            self.cli.setattr('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Create[0]/DropDownWidget[0]/ScrollView[0]/BoxLayout[0]/MDTextField[0]','text',random_label)
+            time.sleep(0.2)
         # CLICK BACK-BUTTON
         self.cli.click_on('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/Toolbar[0]/BoxLayout[0]/MDIconButton[0]/MDLabel[0]')
         time.sleep(4)
@@ -219,7 +245,11 @@ class TestDraftMessage(TeleniumTestCase):
         time.sleep(5)
         self.cli.setattr('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Create[0]/DropDownWidget[0]/ScrollView[0]/BoxLayout[0]/MDTextField[0]','text','draft message')
         time.sleep(4)
-        self.cli.setattr('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Create[0]/DropDownWidget[0]/ScrollView[0]/BoxLayout[0]/MDTextField[1]','text','Hey , This is draft Message Body')
+        random_label=""
+        for char in "Hey,This is draft Message Body":
+            random_label += char
+            self.cli.setattr('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Create[0]/DropDownWidget[0]/ScrollView[0]/BoxLayout[0]/MDTextField[1]','text',random_label)
+            time.sleep(0.2)
         time.sleep(3)
         self.cli.click_on('//MDIconButton[2]')
         time.sleep(5)

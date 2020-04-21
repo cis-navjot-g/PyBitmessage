@@ -13,14 +13,10 @@ class TestBitMessageApp(TeleniumTestCase):
 
     def runTest(self):
         print(self,"-------------Welcome To Kivy Testing Application-------------")  
-
     
     def test_login_screen(self):
         print(self,"---------------------------")
-        time.sleep(5)
-        # if os.path.isdir("/home/cis/.config/PyBitmessage"):
-        #     pass
-        # else:    
+        time.sleep(5)   
         print("first screen")
         self.cli.drag("/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Login[0]/ScrollView[0]/BoxLayout[0]/MDCheckbox[0]","/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Login[0]/ScrollView[0]/BoxLayout[0]/BoxLayout[0]",2)
         time.sleep(5)
@@ -28,17 +24,13 @@ class TestBitMessageApp(TeleniumTestCase):
         time.sleep(5)
 
     def test_random_screen(self):
-        # if os.path.isdir("/home/cis/.config/PyBitmessage"):
-        #     pass
-        # else:
         random_label = ""
         for _ in range(10):
             random_label += choice(ascii_lowercase)                                  
             self.cli.setattr(u'/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Random[0]/ScrollView[0]/BoxLayout[0]/MDTextField[0]', "text", random_label)
-            time.sleep(1)
+            time.sleep(0.2)
         self.cli.wait_click(u'/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Random[0]/ScrollView[0]/BoxLayout[0]/BoxLayout[0]/AnchorLayout[0]/MDRaisedButton[0]/MDLabel[0]')    
-        time.sleep(8)
-
+        time.sleep(5)
      
 if __name__ == '__main__':
     TeleniumTestCase.start_process()
@@ -54,6 +46,9 @@ if __name__ == '__main__':
     obj.test_select_address()
     obj_1=test_telenium_cases.TestSentMessage()
     obj_1.test_select_sent()
+    obj_inbox=test_telenium_cases.TestInboxMessage()
+    obj_inbox.test_select_inbox_of_second_address()
+    obj_inbox.test_show_inbox_message()
     obj_1.test_show_sent_messgae_list()
     obj_1.test_sent_multiple_message()
     obj_1.test_serach_sent_messages()
@@ -64,5 +59,4 @@ if __name__ == '__main__':
     obj_2.test_select_draft_message()
     obj_2.test_edit_draft_messgae()
     obj_2.test_delete_draft_message()
-
         
