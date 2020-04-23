@@ -25,6 +25,15 @@ class TestSelectAddress(TeleniumTestCase):
     def runTest(self):
         print(self,"-------------Welcome To Kivy Testing Application second Page-------------")
 
+    def test_check_already_created_address(self):
+        time.sleep(6)
+        self.cli.execute('app.root.toggle_nav_drawer()')
+        time.sleep(4)
+        self.cli.drag("//NavigationDrawerSubheader[@text=\"All labels\"]","//NavigationDrawerIconButton[@text=\"All Mails\"]",1)
+        time.sleep(3)
+        self.cli.click_on('//NavigationDrawerIconButton[12]')
+        time.sleep(4)
+
     def test_select_second_address(self):
         global data 
         time.sleep(5)
@@ -40,8 +49,14 @@ class TestSelectAddress(TeleniumTestCase):
         time.sleep(5)
         self.cli.click_on('//NavigationDrawerIconButton[0]')
         time.sleep(5)
+        self.cli.click_on('//NDBadgeLabel[1]')
+        time.sleep(5)
         self.cli.click_on('//NavigationDrawerIconButton[1]')
         time.sleep(5)
+
+    def test_calling_all_methods(self):
+        self.test_select_second_address()
+        self.test_select_address()
 
 class TestInboxMessage(TestSelectAddress):
 
@@ -72,6 +87,11 @@ class TestInboxMessage(TestSelectAddress):
         time.sleep(2)
         self.cli.click_on('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Inbox[0]/BoxLayout[0]/BoxLayout[0]/ScrollView[0]/MDList[0]/Carousel[0]/RelativeLayout[1]/Button[0]')
         time.sleep(4)
+
+    def test_all_inbox_method(self):
+        self.test_select_inbox_of_second_address()
+        self.test_show_inbox_message()
+        self.test_delete_inbox_message()    
 
 class TestSentMessage(TestSelectAddress):
 
@@ -135,7 +155,7 @@ class TestSentMessage(TestSelectAddress):
         time.sleep(2)    
         
     def test_show_sent_messgae_list(self):
-        time.sleep(5)       
+        time.sleep(5)
         self.cli.execute('app.root.toggle_nav_drawer()')
         time.sleep(5)
         self.cli.click_on('//NavigationDrawerIconButton[0]')
@@ -188,6 +208,13 @@ class TestSentMessage(TestSelectAddress):
         time.sleep(2)
         self.cli.click_on('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Sent[0]/BoxLayout[0]/BoxLayout[0]/ScrollView[0]/MDList[0]/Carousel[0]/RelativeLayout[1]/Button[0]')
         time.sleep(4)
+
+    def test_all_sent_method(self):
+        self.test_show_sent_messgae_list()
+        self.test_serach_sent_messages()
+        self.test_show_sent_message_body()
+        self.test_delete_sent_message_body()
+        self.test_delete_sent_message_from_list()
 
 class TestDraftMessage(TeleniumTestCase):
 
@@ -270,6 +297,52 @@ class TestDraftMessage(TeleniumTestCase):
         time.sleep(5)
         self.cli.click_on('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/Toolbar[0]/BoxLayout[2]/MDIconButton[1]/MDLabel[0]')
         time.sleep(2)
+    
+    def test_all_draft_method(self):
+        self.test_select_draft_message()
+        self.test_edit_draft_messgae()
+        self.test_delete_draft_message()
+
+class TestAllMailsMessage(TeleniumTestCase):
+
+    def runTest(self):
+        print(self,"-------------Welcome To Kivy Testing Application Sixth Page-------------")
+
+    def test_select_all_mails(self):
+        print("---------------Show All Mails----------------")
+        time.sleep(5)
+        self.cli.execute('app.root.toggle_nav_drawer()')
+        time.sleep(4)
+        self.cli.click_on('//NavigationDrawerIconButton[5]')
+        time.sleep(4)
+      
+    def test_delete_message_from_draft(self):
+        print("------------Delete Message From Mails-----------")
+        time.sleep(4)
+        self.cli.click_on('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Allmails[0]/Allmails[0]/BoxLayout[0]/BoxLayout[0]/ScrollView[0]/MDList[0]/Carousel[0]')
+        time.sleep(5)
+        self.cli.click_on('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/Toolbar[0]/BoxLayout[2]/MDIconButton[0]/MDLabel[0]')
+        time.sleep(3)
+
+class TestTrashMessage(TeleniumTestCase):
+
+    def runTest(self):
+        print(self,"-------------Welcome To Kivy Testing Application Fifth Page-------------")
+
+    def test_delete_trash_message(self):
+        print("---------Delete Trash Message Permanently-------------------")
+        time.sleep(6)
+        # self.cli.click_on('//NavigationDrawerIconButton[4]')
+        self.cli.execute('app.root.toggle_nav_drawer()')
+        time.sleep(4)
+        self.cli.click_on('//NavigationDrawerIconButton[4]')
+        time.sleep(4)
+        self.cli.drag('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Trash[0]/Trash[0]/BoxLayout[0]/BoxLayout[0]/ScrollView[0]/MDList[0]/Carousel[0]/RelativeLayout[1]/CustomTwoLineAvatarIconListItem[0]/BoxLayout[1]/AvatarSampleWidget[0]','/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Trash[0]/Trash[0]/BoxLayout[0]/BoxLayout[0]/ScrollView[0]/MDList[0]/Carousel[0]/RelativeLayout[1]/CustomTwoLineAvatarIconListItem[0]/BoxLayout[2]',1)
+        time.sleep(4)
+        self.cli.click_on('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Trash[0]/Trash[0]/BoxLayout[0]/BoxLayout[0]/ScrollView[0]/MDList[0]/Carousel[0]/RelativeLayout[1]/Button[0]')
+        time.sleep(5)
+        self.cli.click_on('//MDRaisedButton[0]')
+        time.sleep(4)
 
 class TestAddressBookContact(TeleniumTestCase):
 
@@ -336,3 +409,10 @@ class TestAddressBookContact(TeleniumTestCase):
         self.cli.drag('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/AddressBook[0]/BoxLayout[0]/BoxLayout[0]/ScrollView[0]/MDList[0]/Carousel[0]/RelativeLayout[1]/CustomTwoLineAvatarIconListItem[0]/BoxLayout[1]/AvatarSampleWidget[0]','/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/AddressBook[0]/BoxLayout[0]/BoxLayout[0]/ScrollView[0]/MDList[0]/Carousel[0]/RelativeLayout[1]/CustomTwoLineAvatarIconListItem[0]/BoxLayout[2]',1)
         time.sleep(2)
         self.cli.click_on('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/AddressBook[0]/BoxLayout[0]/BoxLayout[0]/ScrollView[0]/MDList[0]/Carousel[0]/RelativeLayout[1]/Button[0]')
+
+    def test_all_address_book_method(self):
+        self.test_save_address()
+        self.test_cancel_address()
+        self.test_send_message_to_addressbook()
+        self.test_delete_address_from_address_contact()
+
