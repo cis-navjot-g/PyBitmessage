@@ -812,14 +812,22 @@ class Random(Screen):
             self.manager.current = 'myaddress'
             Clock.schedule_once(self.address_created_callback, 6)
 
-    @staticmethod
-    def address_created_callback(dt=0):
+    def address_created_callback(self, dt=0):
         """New address created"""
         state.kivyapp.root.ids.sc10.children[1].active = False
         state.kivyapp.root.ids.sc10.ids.ml.clear_widgets()
         state.kivyapp.root.ids.sc10.is_add_created = True
         state.kivyapp.root.ids.sc10.init_ui()
+        self.reset_address_spinner()
         toast('New address created')
+
+    def reset_address_spinner(self):
+        """reseting spinner address and UI"""
+        addresses = BMConfigParser().addresses()
+        self.manager.parent.parent.parent.parent.ids.nav_drawer.ids.btn.values = []
+        self.manager.parent.parent.parent.parent.ids.sc3.children[1].ids.btn.values = []
+        self.manager.parent.parent.parent.parent.ids.nav_drawer.ids.btn.values = addresses
+        self.manager.parent.parent.parent.parent.ids.sc3.children[1].ids.btn.values = addresses
 
     def add_validation(self, instance):
         """Checking validation at address creation time"""
@@ -1353,14 +1361,20 @@ class NavigateApp(App):  # pylint: disable=too-many-public-methods
     def on_key(self, window, key, *args):
         """Method is used for going on previous screen"""
         if key == 27:
-            if state.in_search_mode and self.root.ids.scr_mngr.current != (
-                    "mailDetail"):
+            if state.in_search_mode and self.root.ids.scr_mngr.current not in [
+                    "mailDetail", "create"]:
                 self.closeSearchScreen()
             elif self.root.ids.scr_mngr.current == "mailDetail":
                 self.root.ids.scr_mngr.current = 'sent'\
                     if state.detailPageType == 'sent' else 'inbox' \
                     if state.detailPageType == 'inbox' else 'draft'
                 self.back_press()
+                if state.in_search_mode and state.searcing_text:
+                    toolbar_obj = self.root.ids.toolbar
+                    toolbar_obj.left_action_items = [
+                        ['arrow-left', lambda x: self.closeSearchScreen()]]
+                    toolbar_obj.right_action_items = []
+                    self.root.ids.toolbar.title = ''
             elif self.root.ids.scr_mngr.current == "create":
                 self.save_draft()
                 self.set_common_header()
@@ -1376,7 +1390,7 @@ class NavigateApp(App):  # pylint: disable=too-many-public-methods
             self.root.ids.scr_mngr.transition.direction = 'right'
             self.root.ids.scr_mngr.transition.bind(on_complete=self.reset)
             return True
-        elif key == 13 and state.searcing_text:
+        elif key == 13 and state.searcing_text and not state.in_composer:
             if state.search_screen == 'inbox':
                 self.root.ids.sc1.children[1].active = True
                 Clock.schedule_once(self.search_callback, 0.5)
@@ -1619,6 +1633,11 @@ class NavigateApp(App):  # pylint: disable=too-many-public-methods
 
     def set_mail_detail_header(self):
         """Setting the details of the page"""
+        if state.association and state.in_search_mode:
+            address_label = self.current_address_label(
+                BMConfigParser().get(
+                    state.association, 'label'), state.association)
+            self.root.ids.toolbar.title = address_label
         toolbar_obj = self.root.ids.toolbar
         toolbar_obj.left_action_items = [
             ['arrow-left', lambda x: self.back_press()]]
@@ -1924,6 +1943,7 @@ class MailDetail(Screen):
 
     def inbox_reply(self):
         """Reply inbox messages"""
+        state.in_composer = True
         data = sqlQuery(
             "select toaddress, fromaddress, subject, message from inbox where"
             " msgid = ?;", str(state.mail_id))
@@ -2438,16 +2458,16 @@ class Allmails(Screen):
 
 def avatarImageFirstLetter(letter_string):
     """This function is used to the first letter for the avatar image"""
-    if letter_string:
+    try:
         if letter_string[0].upper() >= 'A' and letter_string[0].upper() <= 'Z':
             img_latter = letter_string[0].upper()
         elif int(letter_string[0]) >= 0 and int(letter_string[0]) <= 9:
             img_latter = letter_string[0]
         else:
             img_latter = '!'
-    else:
+    except ValueError as e:
         img_latter = '!'
-    return img_latter
+    return img_latter if img_latter else '!'
 
 
 class Starred(Screen):
