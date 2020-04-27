@@ -5,7 +5,7 @@ import string
 import  os
 data=[]
 
-# class TestCreateNewAddress(TeleniumTestCase):
+
 class Bitmessage_Create_New_Address(TeleniumTestCase):
     """Generate New Address Functionality Testing"""    
 
@@ -24,7 +24,6 @@ class Bitmessage_Create_New_Address(TeleniumTestCase):
         time.sleep(4)
         self.cli.wait_click(u'/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Login[0]/ScrollView[0]/BoxLayout[0]/BoxLayout[2]/AnchorLayout[0]/MDRaisedButton[0]/MDLabel[0]')
 
-# class TestSelectAddress(TeleniumTestCase):
 class Bitmessage_Select_Address(TeleniumTestCase):
     """Select Address Functionality Testing"""
 
@@ -67,7 +66,6 @@ class Bitmessage_Select_Address(TeleniumTestCase):
         self.test_select_second_address()
         self.test_select_address()
 
-# class TestInboxMessage(TestSelectAddress):
 class Bitmessage_Inbox_Screen_Message(TeleniumTestCase):
     """Inbox Screen Functionality Testing"""
 
@@ -111,7 +109,6 @@ class Bitmessage_Inbox_Screen_Message(TeleniumTestCase):
         self.test_show_inbox_message()
         self.test_delete_inbox_message()
 
-# class TestSentMessage(TestSelectAddress):
 class Bitmessage_Sent_Screen_Message(TeleniumTestCase):
     """Sent Screen Functionality Testing"""
 
@@ -172,11 +169,11 @@ class Bitmessage_Sent_Screen_Message(TeleniumTestCase):
             time.sleep(0.2)
         time.sleep(2)
         self.cli.click_on('//MDIconButton[2]')
-        time.sleep(5)       
+        time.sleep(5)
         self.cli.execute('app.root.toggle_nav_drawer()')
         time.sleep(5)
         self.cli.click_on('//NavigationDrawerIconButton[2]')
-        time.sleep(2)    
+        time.sleep(2)
         
     def test_show_sent_messgae_list(self):
         """Displaying All the Messages on Sent Screen"""
@@ -248,13 +245,16 @@ class Bitmessage_Sent_Screen_Message(TeleniumTestCase):
         self.test_delete_sent_message_body()
         self.test_delete_sent_message_from_list()
 
-class TestDraftMessage(TeleniumTestCase):
+class Bitmessage_Draft_Screen_Message(TeleniumTestCase):
+    """Draft Screen Functionality Testing"""
 
     def runTest(self):
         print(self,"-------------Welcome To Kivy Testing Application Fourth Page-------------")
 
     def test_select_draft_message(self):
-        print("----------Show Draft Message--------------------")
+        """Select A Draft Screen From Navigaion-Drawer-Box Then
+           Send a drafted message """
+        print("=====================Test - Select A Draft Screen From Navigaion-Drawer-Box=====================")
         # OPEN NAVIGATION-DRAWER
         time.sleep(4)
         self.cli.execute('app.root.toggle_nav_drawer()')
@@ -296,7 +296,9 @@ class TestDraftMessage(TeleniumTestCase):
         time.sleep(4)
    
     def test_edit_draft_messgae(self):
-        print("---------------Edit Draft Message----------------") 
+        """Select A Message From List of Messages Then
+            make changes and send it."""
+        print("=====================Test - Edit A Message From Draft Screen=====================") 
         # OPEN NAVIGATION-DRAWER
         self.cli.execute('app.root.toggle_nav_drawer()')
         time.sleep(4)
@@ -319,7 +321,8 @@ class TestDraftMessage(TeleniumTestCase):
         time.sleep(5)
         
     def test_delete_draft_message(self):
-        print("-------------Delete Draft Message-----------------")
+        """Delete A Message From List of Messages"""
+        print("=====================Test - Delete A Message From List of Messages=====================")
         time.sleep(5)
         self.cli.execute('app.root.toggle_nav_drawer()')
         time.sleep(4)
@@ -331,17 +334,20 @@ class TestDraftMessage(TeleniumTestCase):
         time.sleep(2)
     
     def test_all_draft_method(self):
+        """Calling All The Methods Draft Class"""
         self.test_select_draft_message()
         self.test_edit_draft_messgae()
         self.test_delete_draft_message()
 
-class TestAllMailsMessage(TeleniumTestCase):
+class Bitmessage_AllMail_Screen_Message(TeleniumTestCase):
+    """AllMail Screen Functionality Testing"""
 
     def runTest(self):
         print(self,"-------------Welcome To Kivy Testing Application Sixth Page-------------")
 
     def test_select_all_mails(self):
-        print("---------------Show All Mails----------------")
+        """Show All Messages on Mail Screen/Window"""
+        print("=====================Test -Show Messages Of Mail Screen=====================")
         time.sleep(5)
         self.cli.execute('app.root.toggle_nav_drawer()')
         time.sleep(4)
@@ -349,20 +355,23 @@ class TestAllMailsMessage(TeleniumTestCase):
         time.sleep(4)
       
     def test_delete_message_from_draft(self):
-        print("------------Delete Message From Mails-----------")
+        """Delete Message From Message body of Mail Screen/Window"""
+        print("=====================Test -Delete Messages Of Mail Screen=====================")
         time.sleep(4)
         self.cli.click_on('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Allmails[0]/Allmails[0]/BoxLayout[0]/BoxLayout[0]/ScrollView[0]/MDList[0]/Carousel[0]')
         time.sleep(5)
         self.cli.click_on('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/Toolbar[0]/BoxLayout[2]/MDIconButton[0]/MDLabel[0]')
         time.sleep(3)
 
-class TestTrashMessage(TeleniumTestCase):
+class Bitmessage_Trash_Screen_Message(TeleniumTestCase):
+    """Trash Screen Functionality Testing"""
 
     def runTest(self):
         print(self,"-------------Welcome To Kivy Testing Application Fifth Page-------------")
 
     def test_delete_trash_message(self):
-        print("---------Delete Trash Message Permanently-------------------")
+        """Delete Message From List of Message Permanently Of Trash Screen/Window"""
+        print("=====================Test -Delete Messages Of Trash Screen=====================")
         time.sleep(6)
         # self.cli.click_on('//NavigationDrawerIconButton[4]')
         self.cli.execute('app.root.toggle_nav_drawer()')
@@ -376,13 +385,15 @@ class TestTrashMessage(TeleniumTestCase):
         self.cli.click_on('//MDRaisedButton[0]')
         time.sleep(4)
 
-class TestAddressBookContact(TeleniumTestCase):
+class Bitmessage_AddressBook_Screen_Message(TeleniumTestCase):
+    """AddressBook Screen Functionality Testing"""
 
     def runTest(self):
         print(self,"-------------Welcome To Kivy Testing Application Seven Page-------------")
 
     def test_save_address(self):
-        print("------------------Save Address In Address Book------------")
+        """Save Address On Address Book Screen/Window"""
+        print("=====================Test -Save Address In Address Book=====================")
         time.sleep(6)
         self.cli.execute('app.root.toggle_nav_drawer()')
         time.sleep(4)
@@ -397,10 +408,11 @@ class TestAddressBookContact(TeleniumTestCase):
         self.cli.setattr('/GrashofPopup/GridLayout[0]/BoxLayout[0]/BoxLayout[0]/BoxLayout[0]/MDTextField[1]','text','BM-2cSsuH1bUWBski8bvdqnK2DivMqQCeQA1J')
         time.sleep(5)
         self.cli.wait_click('/GrashofPopup/GridLayout[0]/BoxLayout[0]/BoxLayout[0]/BoxLayout[1]/MDRaisedButton[0]/MDLabel[0]')
-        time.sleep(4)    
+        time.sleep(4)
 
     def test_cancel_address(self):
-        print("------------------Cancel Address------------------------")
+        """Cancel Address"""
+        print("=====================Test -Cancel Address=====================")
         time.sleep(5)
         self.cli.execute('app.addingtoaddressbook()')
         time.sleep(5)
@@ -411,7 +423,8 @@ class TestAddressBookContact(TeleniumTestCase):
         self.cli.click_on('/GrashofPopup/GridLayout[0]/BoxLayout[0]/BoxLayout[0]/BoxLayout[1]/MDRaisedButton[1]')
 
     def test_send_message_to_addressbook(self):
-        print("--------------Directly Send Message To The User-----------")
+        """Directly Send Message To The User"""
+        print("=====================Test -Directly Send Message To The User=====================")
         time.sleep(4)
         self.cli.click_on('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/AddressBook[0]/BoxLayout[0]/BoxLayout[0]/ScrollView[0]/MDList[0]/Carousel[0]')
         time.sleep(5)
@@ -432,7 +445,8 @@ class TestAddressBookContact(TeleniumTestCase):
         time.sleep(2)
 
     def test_delete_address_from_address_contact(self):
-        print("------------Delete Address From Address Contact Book-----------------")
+        """Delete Address From Address Book"""
+        print("=====================Test -Delete Address From Address Book=====================")
         time.sleep(6)
         self.cli.execute('app.root.toggle_nav_drawer()')
         time.sleep(4)
@@ -448,26 +462,30 @@ class TestAddressBookContact(TeleniumTestCase):
         self.test_send_message_to_addressbook()
         self.test_delete_address_from_address_contact()
 
-class TestSetting(TeleniumTestCase):
+class Bitmessage_Setting_Screen(TeleniumTestCase):
+    """Setting Screen Functionality Testing"""
 
     def runTest(self):
         print(self,"-------------Welcome To Kivy Testing Application Eight Page-------------")
 
     def test_setting(self):
-        print("--------Show Setting Screen-------")
+        """Show Setting Screen"""
+        print("=====================Test -Show Setting Screen=====================")
         time.sleep(6)
         self.cli.execute('app.root.toggle_nav_drawer()')
         time.sleep(4)
         self.cli.click_on('//NavigationDrawerIconButton[7]')
         time.sleep(5)
 
-class TestMyAddress(TeleniumTestCase):
+class Bitmessage_MyAddress_Screen_Message(TeleniumTestCase):
+    """MyAddress Screen Functionality Testing"""
 
     def runTest(self):
         print(self,"-------------Welcome To Kivy Testing Application Ninth Page-------------")
 
     def test_select_myaddress_list(self):
-        print("-----------Select Address From List of Address------------")
+        """Select Address From List of Address"""
+        print("=====================Test -Select Address From List of Address=====================")
         time.sleep(5)
         self.cli.execute('app.root.toggle_nav_drawer()')
         time.sleep(4)
@@ -475,7 +493,8 @@ class TestMyAddress(TeleniumTestCase):
         time.sleep(4)
 
     def test_send_message_from(self):
-        print("------------Send Message From Send Message From Button------------")
+        """Send Message From Send Message From Button"""
+        print("=====================Test -Send Message From Send Message From Button=====================")
         time.sleep(4)
         self.cli.click_on('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/MyAddress[0]/BoxLayout[0]/FloatLayout[0]/MDScrollViewRefreshLayout[0]/MDList[0]/CustomTwoLineAvatarIconListItem[0]/BoxLayout[0]/MDLabel[1]')
         time.sleep(5)
@@ -486,10 +505,53 @@ class TestMyAddress(TeleniumTestCase):
         self.cli.setattr('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Create[0]/DropDownWidget[0]/ScrollView[0]/BoxLayout[0]/MDTextField[0]','text','Hey')
         time.sleep(3)
         random_label=""
-        for char in "Hey,i am sending message directly from MyAddress book.":
+        for char in "Hey,i am sending message directly from MyAddress book":
             random_label += char
             self.cli.setattr('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Create[0]/DropDownWidget[0]/ScrollView[0]/BoxLayout[0]/MDTextField[1]','text',random_label)
             time.sleep(0.2)
         time.sleep(2)
         self.cli.click_on('//MDIconButton[2]')
         time.sleep(2)
+
+class Bitmessage_SubscriptionPayment_Screen(TeleniumTestCase):
+    """SubscriptionPayment Screen Functionality Testing"""
+
+    def runTest(self):
+        print(self,"-------------Welcome To Kivy Testing Application Tenth Page-------------")
+
+    def test_select_subscripton(self):
+        time.sleep(5)
+        self.cli.execute('app.root.toggle_nav_drawer()')
+        time.sleep(4)
+        self.cli.click_on('//NavigationDrawerIconButton[8]')
+        time.sleep(4)
+        self.cli.click_on('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Payment[0]/ScrollView[0]/BoxLayout[0]/BoxLayout[0]/MDRaisedButton[0]/MDLabel[0]')
+        time.sleep(4)
+
+class Bitmessage_Credits_Screen(TeleniumTestCase):
+    """Credits Screen Functionality Testing"""
+
+    def runTest(self):
+        print(self,"-------------Welcome To Kivy Testing Application Eleventh Page-------------")
+
+    def test_check_credits(self):
+        time.sleep(5)
+        self.cli.execute('app.root.toggle_nav_drawer()')
+        time.sleep(4)
+        self.cli.click_on('//NavigationDrawerIconButton[9]')
+        time.sleep(4)
+
+class Bitmessage_NetwrokStatus_Screen(TeleniumTestCase):
+    """NetwrokStatus Screen Functionality Testing"""
+
+    def runTest(self):
+        print(self,"-------------Welcome To Kivy Testing Application Twelth Page-------------")
+
+    def test_total_selection(self):
+        time.sleep(5)
+        self.cli.execute('app.root.toggle_nav_drawer()')
+        time.sleep(4)
+        self.cli.click_on('//NavigationDrawerIconButton[11]')
+        time.sleep(8)
+        self.cli.click_on('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/NetworkStat[0]/MDTabbedPanel[0]/ScrollView[0]/MDTabBar[0]/MDTabHeader[1]/MDLabel[0]')
+        time.sleep(4)
