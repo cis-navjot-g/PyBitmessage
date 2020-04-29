@@ -77,7 +77,7 @@ if __name__ == '__main__':
         credits.test_check_credits()
         network_status=test_telenium_cases.Bitmessage_NetwrokStatus_Screen()
         network_status.test_total_selection()
-    else :    
+    else :
         Bitmessage_Login_Screen().test_login_screen()
         Bitmessage_Login_Screen().test_random_screen()
         new_address=test_telenium_cases.Bitmessage_Create_New_Address()

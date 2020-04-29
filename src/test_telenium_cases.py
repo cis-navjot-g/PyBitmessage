@@ -45,10 +45,12 @@ class Bitmessage_Select_Address(TeleniumTestCase):
         """Select Text From Second Address Generated"""
         print("=====================Test - Select Text From Second Address Created====================")
         global data
-        time.sleep(3)
-        second_address=self.cli.getattr("//CustomTwoLineAvatarIconListItem[0]","secondary_text")
+        time.sleep(4)
+        second_address=self.cli.getattr("//CustomTwoLineAvatarIconListItem[0]","secondary_text") 
+        first_address=self.cli.getattr("//CustomTwoLineAvatarIconListItem[1]","secondary_text")
         data.append(second_address)
-        return data[0]
+        data.append(first_address)
+        return data
 
     def test_select_address(self):
         """Select First Address From Drawer-Box"""
@@ -231,7 +233,7 @@ class Bitmessage_Sent_Screen_Message(TeleniumTestCase):
         """Archive A Message From List Of Messages Of Sent Screen"""
         print("=====================Test - Archive A Message From List Of Messages=====================")
         # Swipe-Arrchive-Sent-Message
-        time.sleep(7)
+        time.sleep(4)
         self.cli.drag('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Sent[0]/BoxLayout[0]/BoxLayout[0]/ScrollView[0]/MDList[0]/Carousel[0]/RelativeLayout[2]/CustomTwoLineAvatarIconListItem[0]/BoxLayout[0]','/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Sent[0]/BoxLayout[0]/BoxLayout[0]/ScrollView[0]/MDList[0]/Carousel[0]/RelativeLayout[0]/Button[0]',1)
         time.sleep(2)
         self.cli.click_on('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Sent[0]/BoxLayout[0]/BoxLayout[0]/ScrollView[0]/MDList[0]/Carousel[0]/RelativeLayout[1]/Button[0]')
@@ -298,13 +300,13 @@ class Bitmessage_Draft_Screen_Message(TeleniumTestCase):
     def test_edit_draft_messgae(self):
         """Select A Message From List of Messages Then
             make changes and send it."""
-        print("=====================Test - Edit A Message From Draft Screen=====================") 
+        print("=====================Test - Edit A Message From Draft Screen=====================")
         # OPEN NAVIGATION-DRAWER
         self.cli.execute('app.root.toggle_nav_drawer()')
         time.sleep(4)
         # OPEN DRAFT SCREEN
         self.cli.click_on('//NavigationDrawerIconButton[3]')
-        time.sleep(7)
+        time.sleep(4)
         # SHOW DRAFT MESSAGE AND SELECT FIRST MESSAGE
         self.cli.click_on('//Carousel[0]')
         time.sleep(3)
@@ -500,7 +502,7 @@ class Bitmessage_MyAddress_Screen_Message(TeleniumTestCase):
         time.sleep(5)
         self.cli.click_on('/MyaddDetailPopup/GridLayout[0]/BoxLayout[0]/BoxLayout[0]/BoxLayout[1]/MDRaisedButton[0]/MDLabel[0]')
         time.sleep(4)
-        self.cli.setattr('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Create[0]/DropDownWidget[0]/ScrollView[0]/BoxLayout[0]/BoxLayout[1]/MyTextInput[0]',"text",data[0])
+        self.cli.setattr('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Create[0]/DropDownWidget[0]/ScrollView[0]/BoxLayout[0]/BoxLayout[1]/MyTextInput[0]',"text",data[1])
         time.sleep(4)
         self.cli.setattr('/NavigationLayout/BoxLayout[1]/FloatLayout[0]/BoxLayout[0]/ScreenManager[0]/Create[0]/DropDownWidget[0]/ScrollView[0]/BoxLayout[0]/MDTextField[0]','text','Hey')
         time.sleep(3)
@@ -520,6 +522,8 @@ class Bitmessage_SubscriptionPayment_Screen(TeleniumTestCase):
         print(self,"-------------Welcome To Kivy Testing Application Tenth Page-------------")
 
     def test_select_subscripton(self):
+        """Select Subscripton From List of Subscriptons"""
+        print("=====================Test -Select Subscripton From List of Subscriptons=====================")
         time.sleep(5)
         self.cli.execute('app.root.toggle_nav_drawer()')
         time.sleep(4)
@@ -535,6 +539,8 @@ class Bitmessage_Credits_Screen(TeleniumTestCase):
         print(self,"-------------Welcome To Kivy Testing Application Eleventh Page-------------")
 
     def test_check_credits(self):
+        """Show Added Credits"""
+        print("=====================Test -Select Credits From List of Credits=====================")
         time.sleep(5)
         self.cli.execute('app.root.toggle_nav_drawer()')
         time.sleep(4)
@@ -548,6 +554,8 @@ class Bitmessage_NetwrokStatus_Screen(TeleniumTestCase):
         print(self,"-------------Welcome To Kivy Testing Application Twelth Page-------------")
 
     def test_total_selection(self):
+        """Show NetwrokStatus"""
+        print("=====================Test -Show NetwrokStatus=====================")
         time.sleep(5)
         self.cli.execute('app.root.toggle_nav_drawer()')
         time.sleep(4)
