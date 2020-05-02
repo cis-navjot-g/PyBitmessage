@@ -579,7 +579,8 @@ class DropDownWidget(BoxLayout):
             if toAddress != '' and subject and message:
                 status, addressVersionNumber, streamNumber, ripe = (
                     decodeAddress(toAddress))
-                if status == 'success':
+                valid_from_add = True if fromAddress in state.kivyapp.variable_1 else False
+                if status == 'success' and valid_from_add:
                     navApp.root.ids.sc3.children[0].active = True
                     if state.detailPageType == 'draft' \
                             and state.send_draft_mail:
@@ -632,6 +633,8 @@ class DropDownWidget(BoxLayout):
                     print "sqlExecute successfully #######################"
                     state.in_composer = True
                     return
+                elif valid_from_add is False:
+                    msg = 'Please enter valid sender address'
                 else:
                     msg = 'Enter a valid recipients address'
             elif not toAddress:
