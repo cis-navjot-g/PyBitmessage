@@ -1,18 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-Symmetric Encryption
-"""
+
 #  Copyright (C) 2011 Yann GUIBET <yannguibet@gmail.com>
 #  See LICENSE for details.
 
-from openssl import OpenSSL
+from pyelliptic.openssl import OpenSSL
 
 
-# pylint: disable=redefined-builtin
-class Cipher(object):
+class Cipher:
     """
-    Main class for encryption
+    Symmetric encryption
 
         import pyelliptic
         iv = pyelliptic.Cipher.gen_IV('aes-256-cfb')
@@ -47,34 +44,30 @@ class Cipher(object):
 
     @staticmethod
     def get_blocksize(ciphername):
-        """This Method returns cipher blocksize"""
         cipher = OpenSSL.get_cipher(ciphername)
         return cipher.get_blocksize()
 
     @staticmethod
     def gen_IV(ciphername):
-        """Generate random initialization vector"""
         cipher = OpenSSL.get_cipher(ciphername)
         return OpenSSL.rand(cipher.get_blocksize())
 
     def update(self, input):
-        """Update result with more data"""
         i = OpenSSL.c_int(0)
         buffer = OpenSSL.malloc(b"", len(input) + self.cipher.get_blocksize())
         inp = OpenSSL.malloc(input, len(input))
         if OpenSSL.EVP_CipherUpdate(self.ctx, OpenSSL.byref(buffer),
                                     OpenSSL.byref(i), inp, len(input)) == 0:
             raise Exception("[OpenSSL] EVP_CipherUpdate FAIL ...")
-        return buffer.raw[0:i.value]  # pylint: disable=invalid-slice-index
+        return buffer.raw[0:i.value]
 
     def final(self):
-        """Returning the final value"""
         i = OpenSSL.c_int(0)
         buffer = OpenSSL.malloc(b"", self.cipher.get_blocksize())
         if (OpenSSL.EVP_CipherFinal_ex(self.ctx, OpenSSL.byref(buffer),
                                        OpenSSL.byref(i))) == 0:
             raise Exception("[OpenSSL] EVP_CipherFinal_ex FAIL ...")
-        return buffer.raw[0:i.value]  # pylint: disable=invalid-slice-index
+        return buffer.raw[0:i.value]
 
     def ciphering(self, input):
         """
@@ -84,7 +77,6 @@ class Cipher(object):
         return buff + self.final()
 
     def __del__(self):
-        # pylint: disable=protected-access
         if OpenSSL._hexversion > 0x10100000 and not OpenSSL._libreSSL:
             OpenSSL.EVP_CIPHER_CTX_reset(self.ctx)
         else:

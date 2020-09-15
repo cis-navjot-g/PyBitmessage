@@ -1,26 +1,17 @@
-import logging
 from importlib import import_module
-from os import listdir, path
+from os import path, listdir
 from string import lower
-try:
-    from kivy.utils import platform
-except:
-    platform = ''
 
+from debug import logger
 import messagetypes
 import paths
 
-logger = logging.getLogger('default')
-
-
-class MsgBase(object):  # pylint: disable=too-few-public-methods
-    """Base class for message types"""
-    def __init__(self):
+class MsgBase(object):
+    def encode(self):
         self.data = {"": lower(type(self).__name__)}
 
 
 def constructObject(data):
-    """Constructing an object"""
     whitelist = ["message"]
     if data[""] not in whitelist:
         return None
@@ -41,8 +32,7 @@ def constructObject(data):
     else:
         return returnObj
 
-
-if paths.frozen is not None or platform == "android":
+if paths.frozen is not None:
     import messagetypes.message
     import messagetypes.vote
 else:

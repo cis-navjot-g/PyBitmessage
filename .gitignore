@@ -17,8 +17,4 @@ dist
 *.egg-info
 docs/_*/*
 docs/autodoc/
-build/sphinx/
 pyan/
-.buildozer/
-bin/
-src/images/default_identicon/

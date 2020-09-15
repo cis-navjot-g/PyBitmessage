@@ -1,39 +1,17 @@
-"""
-SQL-related functions defined here are really pass the queries (or other SQL
-commands) to :class:`.threads.sqlThread` through `sqlSubmitQueue` queue and check
-or return the result got from `sqlReturnQueue`.
+"""Helper Sql performs sql operations."""
 
-This is done that way because :mod:`sqlite3` is so thread-unsafe that they
-won't even let you call it from different threads using your own locks.
-SQLite objects can only be used from one thread.
-
-.. note:: This actually only applies for certain deployments, and/or
-   really old version of sqlite. I haven't actually seen it anywhere.
-   Current versions do have support for threading and multiprocessing.
-   I don't see an urgent reason to refactor this, but it should be noted
-   in the comment that the problem is mostly not valid. Sadly, last time
-   I checked, there is no reliable way to check whether the library is
-   or isn't thread-safe.
-"""
-
-import Queue
 import threading
+import Queue
 
 sqlSubmitQueue = Queue.Queue()
-"""the queue for SQL"""
+# SQLITE3 is so thread-unsafe that they won't even let you call it from different threads using your own locks.
+# SQL objects #can only be called from one thread.
 sqlReturnQueue = Queue.Queue()
-"""the queue for results"""
 sqlLock = threading.Lock()
 
 
 def sqlQuery(sqlStatement, *args):
-    """
-    Query sqlite and return results
-
-    :param str sqlStatement: SQL statement string
-    :param list args: SQL query parameters
-    :rtype: list
-    """
+    """SQLLITE execute statement and return query."""
     sqlLock.acquire()
     sqlSubmitQueue.put(sqlStatement)
 
@@ -50,7 +28,6 @@ def sqlQuery(sqlStatement, *args):
 
 
 def sqlExecuteChunked(sqlStatement, idCount, *args):
-    """Execute chunked SQL statement to avoid argument limit"""
     # SQLITE_MAX_VARIABLE_NUMBER,
     # unfortunately getting/setting isn't exposed to python
     sqlExecuteChunked.chunkSize = 999
@@ -81,7 +58,6 @@ def sqlExecuteChunked(sqlStatement, idCount, *args):
 
 
 def sqlExecute(sqlStatement, *args):
-    """Execute SQL statement (optionally with arguments)"""
     sqlLock.acquire()
     sqlSubmitQueue.put(sqlStatement)
 
@@ -94,15 +70,13 @@ def sqlExecute(sqlStatement, *args):
     sqlLock.release()
     return rowcount
 
-
 def sqlStoredProcedure(procName):
-    """Schedule procName to be run"""
     sqlLock.acquire()
     sqlSubmitQueue.put(procName)
     sqlLock.release()
 
 
-class SqlBulkExecute(object):
+class SqlBulkExecute:
     """This is used when you have to execute the same statement in a cycle."""
 
     def __enter__(self):

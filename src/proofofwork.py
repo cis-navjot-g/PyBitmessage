@@ -1,6 +1,7 @@
 # pylint: disable=too-many-branches,too-many-statements,protected-access
 """
-Proof of work calculation
+src/proofofwork.py
+==================
 """
 
 import ctypes
@@ -18,8 +19,6 @@ import state
 import tr
 from bmconfigparser import BMConfigParser
 from debug import logger
-from kivy.utils import platform
-
 
 bitmsglib = 'bitmsghash.so'
 bmpow = None
@@ -293,7 +292,8 @@ def init():
     global bitmsglib, bmpow
 
     openclpow.initCL()
-    if "win32" == sys.platform:
+
+    if sys.platform == "win32":
         if ctypes.sizeof(ctypes.c_voidp) == 4:
             bitmsglib = 'bitmsghash32.dll'
         else:
@@ -319,12 +319,6 @@ def init():
             except:
                 logger.error("C PoW test fail.", exc_info=True)
                 bso = None
-    elif platform == "android":
-        try:
-            bso = ctypes.CDLL('libbitmsghash.so')
-        except Exception as e:
-            bso = None
-
     else:
         try:
             bso = ctypes.CDLL(os.path.join(paths.codePath(), "bitmsghash", bitmsglib))

@@ -1,6 +1,3 @@
-"""
-Module for tracking objects
-"""
 import time
 from threading import RLock
 
@@ -30,7 +27,6 @@ missingObjects = {}
 
 
 class ObjectTracker(object):
-    """Object tracker mixin"""
     invCleanPeriod = 300
     invInitialCapacity = 50000
     invErrorRate = 0.03
@@ -46,47 +42,37 @@ class ObjectTracker(object):
         self.lastCleaned = time.time()
 
     def initInvBloom(self):
-        """Init bloom filter for tracking. WIP."""
         if haveBloom:
             # lock?
-            self.invBloom = BloomFilter(
-                capacity=ObjectTracker.invInitialCapacity,
-                error_rate=ObjectTracker.invErrorRate)
+            self.invBloom = BloomFilter(capacity=ObjectTracker.invInitialCapacity,
+                                        error_rate=ObjectTracker.invErrorRate)
 
     def initAddrBloom(self):
-        """Init bloom filter for tracking addrs, WIP.
-        This either needs to be moved to addrthread.py or removed."""
         if haveBloom:
             # lock?
-            self.addrBloom = BloomFilter(
-                capacity=ObjectTracker.invInitialCapacity,
-                error_rate=ObjectTracker.invErrorRate)
+            self.addrBloom = BloomFilter(capacity=ObjectTracker.invInitialCapacity,
+                                         error_rate=ObjectTracker.invErrorRate)
 
     def clean(self):
-        """Clean up tracking to prevent memory bloat"""
         if self.lastCleaned < time.time() - ObjectTracker.invCleanPeriod:
             if haveBloom:
-                if missingObjects == 0:
+                if len(missingObjects) == 0:
                     self.initInvBloom()
                 self.initAddrBloom()
             else:
                 # release memory
                 deadline = time.time() - ObjectTracker.trackingExpires
                 with self.objectsNewToThemLock:
-                    self.objectsNewToThem = {
-                        k: v
-                        for k, v in self.objectsNewToThem.iteritems()
-                        if v >= deadline}
+                    self.objectsNewToThem = {k: v for k, v in self.objectsNewToThem.iteritems() if v >= deadline}
             self.lastCleaned = time.time()
 
     def hasObj(self, hashid):
-        """Do we already have object?"""
         if haveBloom:
             return hashid in self.invBloom
-        return hashid in self.objectsNewToMe
+        else:
+            return hashid in self.objectsNewToMe
 
     def handleReceivedInventory(self, hashId):
-        """Handling received inventory"""
         if haveBloom:
             self.invBloom.add(hashId)
         try:
@@ -99,20 +85,18 @@ class ObjectTracker(object):
         self.objectsNewToMe[hashId] = True
 
     def handleReceivedObject(self, streamNumber, hashid):
-        """Handling received object"""
-        for i in network.connectionpool.BMConnectionPool().connections():
+        for i in network.connectionpool.BMConnectionPool().inboundConnections.values() + network.connectionpool.BMConnectionPool().outboundConnections.values():
             if not i.fullyEstablished:
                 continue
             try:
                 del i.objectsNewToMe[hashid]
             except KeyError:
-                if streamNumber in i.streams and (
-                        not Dandelion().hasHash(hashid) or
-                        Dandelion().objectChildStem(hashid) == i):
+                if streamNumber in i.streams and \
+                    (not Dandelion().hasHash(hashid) or \
+                    Dandelion().objectChildStem(hashid) == i):
                     with i.objectsNewToThemLock:
                         i.objectsNewToThem[hashid] = time.time()
-                    # update stream number,
-                    # which we didn't have when we just received the dinv
+                    # update stream number, which we didn't have when we just received the dinv
                     # also resets expiration of the stem mode
                     Dandelion().setHashStream(hashid, streamNumber)
 
@@ -125,12 +109,23 @@ class ObjectTracker(object):
         self.objectsNewToMe.setLastObject()
 
     def hasAddr(self, addr):
-        """WIP, should be moved to addrthread.py or removed"""
         if haveBloom:
             return addr in self.invBloom
-        return None
 
     def addAddr(self, hashid):
-        """WIP, should be moved to addrthread.py or removed"""
         if haveBloom:
             self.addrBloom.add(hashid)
+
+# addr sending -> per node upload queue, and flush every minute or so
+# inv sending -> if not in bloom, inv immediately, otherwise put into a per node upload queue and flush every minute or so
+# data sending -> a simple queue
+
+# no bloom
+# - if inv arrives
+#   - if we don't have it, add tracking and download queue
+#   - if we do have it, remove from tracking
+# tracking downloads
+# - per node hash of items the node has but we don't
+# tracking inv
+# - per node hash of items that neither the remote node nor we have
+#

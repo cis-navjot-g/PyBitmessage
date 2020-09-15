@@ -1,19 +1,21 @@
 """
-Improved version of asyncore dispatcher
+src/network/advanceddispatcher.py
+=================================
 """
 # pylint: disable=attribute-defined-outside-init
+
 import socket
 import threading
 import time
 
 import network.asyncore_pollchoose as asyncore
 import state
-from threads import BusyError, nonBlocking
+from debug import logger
+from helper_threading import BusyError, nonBlocking
 
 
 class ProcessingError(Exception):
-    """General class for protocol parser exception,
-    use as a base for others."""
+    """General class for protocol parser exception, use as a base for others."""
     pass
 
 
@@ -23,8 +25,7 @@ class UnknownStateError(ProcessingError):
 
 
 class AdvancedDispatcher(asyncore.dispatcher):
-    """Improved version of asyncore dispatcher,
-    with buffers and protocol state."""
+    """Improved version of asyncore dispatcher, with buffers and protocol state."""
     # pylint: disable=too-many-instance-attributes
     _buf_len = 131072  # 128kB
 
@@ -72,8 +73,7 @@ class AdvancedDispatcher(asyncore.dispatcher):
                     del self.read_buf[0:length]
 
     def process(self):
-        """Process (parse) data that's in the buffer,
-        as long as there is enough data and the connection is open."""
+        """Process (parse) data that's in the buffer, as long as there is enough data and the connection is open."""
         while self.connected and not state.shutdown:
             try:
                 with nonBlocking(self.processingLock):
@@ -84,8 +84,7 @@ class AdvancedDispatcher(asyncore.dispatcher):
                     try:
                         cmd = getattr(self, "state_" + str(self.state))
                     except AttributeError:
-                        self.logger.error(
-                            'Unknown state %s', self.state, exc_info=True)
+                        logger.error("Unknown state %s", self.state, exc_info=True)
                         raise UnknownStateError(self.state)
                     if not cmd():
                         break
@@ -105,9 +104,8 @@ class AdvancedDispatcher(asyncore.dispatcher):
         if asyncore.maxUploadRate > 0:
             self.uploadChunk = int(asyncore.uploadBucket)
         self.uploadChunk = min(self.uploadChunk, len(self.write_buf))
-        return asyncore.dispatcher.writable(self) and (
-            self.connecting or (
-                self.connected and self.uploadChunk > 0))
+        return asyncore.dispatcher.writable(self) and \
+            (self.connecting or (self.connected and self.uploadChunk > 0))
 
     def readable(self):
         """Is the read buffer ready to accept data from the network?"""
@@ -116,15 +114,13 @@ class AdvancedDispatcher(asyncore.dispatcher):
             self.downloadChunk = int(asyncore.downloadBucket)
         try:
             if self.expectBytes > 0 and not self.fullyEstablished:
-                self.downloadChunk = min(
-                    self.downloadChunk, self.expectBytes - len(self.read_buf))
+                self.downloadChunk = min(self.downloadChunk, self.expectBytes - len(self.read_buf))
                 if self.downloadChunk < 0:
                     self.downloadChunk = 0
         except AttributeError:
             pass
-        return asyncore.dispatcher.readable(self) and (
-            self.connecting or self.accepting or (
-                self.connected and self.downloadChunk > 0))
+        return asyncore.dispatcher.readable(self) and \
+            (self.connecting or self.accepting or (self.connected and self.downloadChunk > 0))
 
     def handle_read(self):
         """Append incoming data to the read buffer."""
@@ -148,21 +144,20 @@ class AdvancedDispatcher(asyncore.dispatcher):
         try:
             asyncore.dispatcher.handle_connect_event(self)
         except socket.error as e:
-            # pylint: disable=protected-access
-            if e.args[0] not in asyncore._DISCONNECTED:
+            if e.args[0] not in asyncore._DISCONNECTED:  # pylint: disable=protected-access
                 raise
 
     def handle_connect(self):
         """Method for handling connection established implementations."""
         self.lastTx = time.time()
 
-    def state_close(self):  # pylint: disable=no-self-use
+    def state_close(self):
         """Signal to the processing loop to end."""
+        # pylint: disable=no-self-use
         return False
 
     def handle_close(self):
-        """Callback for connection being closed,
-        but can also be called directly when you want connection to close."""
+        """Callback for connection being closed, but can also be called directly when you want connection to close."""
         with self.readLock:
             self.read_buf = bytearray()
         with self.writeLock:

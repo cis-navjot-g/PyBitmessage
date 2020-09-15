@@ -5,25 +5,22 @@ src/bitmessageqt/dialogs.py
 
 from PyQt4 import QtGui
 
+from version import softwareVersion
+
 import paths
 import widgets
 from address_dialogs import (
-    AddAddressDialog, EmailGatewayDialog, NewAddressDialog,
-    NewSubscriptionDialog, RegenerateAddressesDialog,
+    AddAddressDialog, EmailGatewayDialog, NewAddressDialog, NewSubscriptionDialog, RegenerateAddressesDialog,
     SpecialAddressBehaviorDialog
 )
 from newchandialog import NewChanDialog
 from retranslateui import RetranslateMixin
-from settings import SettingsDialog
 from tr import _translate
-from version import softwareVersion
-
 
 __all__ = [
     "NewChanDialog", "AddAddressDialog", "NewAddressDialog",
     "NewSubscriptionDialog", "RegenerateAddressesDialog",
-    "SpecialAddressBehaviorDialog", "EmailGatewayDialog",
-    "SettingsDialog"
+    "SpecialAddressBehaviorDialog", "EmailGatewayDialog"
 ]
 
 
@@ -47,7 +44,7 @@ class AboutDialog(QtGui.QDialog, RetranslateMixin):
         try:
             self.label_2.setText(
                 self.label_2.text().replace(
-                    '2020', str(last_commit.get('time').year)
+                    '2019', str(last_commit.get('time').year)
                 ))
         except AttributeError:
             pass

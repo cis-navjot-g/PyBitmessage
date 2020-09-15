@@ -15,7 +15,6 @@ from openclpow import openclAvailable, openclEnabled
 import paths
 import proofofwork
 from pyelliptic.openssl import OpenSSL
-from settings import getSOCKSProxyType
 import queues
 import network.stats
 import state
@@ -119,7 +118,8 @@ def createSupportMessage(myapp):
         BMConfigParser().safeGet('bitmessagesettings', 'opencl')
     ) if openclEnabled() else "None"
     locale = getTranslationLanguage()
-    socks = getSOCKSProxyType(BMConfigParser()) or "N/A"
+    socks = BMConfigParser().safeGet(
+        'bitmessagesettings', 'socksproxytype', "N/A")
     upnp = BMConfigParser().safeGet('bitmessagesettings', 'upnp', "N/A")
     connectedhosts = len(network.stats.connectedHostsList())
 

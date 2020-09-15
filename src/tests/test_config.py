@@ -26,7 +26,6 @@ class TestConfig(unittest.TestCase):
             False
         )
         # no arg for default
-        # pylint: disable=too-many-function-args
         with self.assertRaises(TypeError):
             BMConfigParser().safeGetBoolean(
                 'nonexistent', 'nonexistent', True)
@@ -48,9 +47,9 @@ class TestProcessConfig(TestProcessProto):
         config = BMConfigParser()
         config.read(os.path.join(self.home, 'keys.dat'))
 
-        self.assertEqual(config.safeGetInt(
+        self.assertEquals(config.safeGetInt(
             'bitmessagesettings', 'settingsversion'), 10)
-        self.assertEqual(config.safeGetInt(
+        self.assertEquals(config.safeGetInt(
             'bitmessagesettings', 'port'), 8444)
         # don't connect
         self.assertTrue(config.safeGetBoolean(
@@ -60,7 +59,7 @@ class TestProcessConfig(TestProcessProto):
             'bitmessagesettings', 'apienabled'))
 
         # extralowdifficulty is false
-        self.assertEqual(config.safeGetInt(
+        self.assertEquals(config.safeGetInt(
             'bitmessagesettings', 'defaultnoncetrialsperbyte'), 1000)
-        self.assertEqual(config.safeGetInt(
+        self.assertEquals(config.safeGetInt(
             'bitmessagesettings', 'defaultpayloadlengthextrabytes'), 1000)

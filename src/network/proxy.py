@@ -1,17 +1,11 @@
-"""
-Set proxy if avaiable otherwise exception
-"""
-# pylint: disable=protected-access
-import logging
 import socket
 import time
 
 import asyncore_pollchoose as asyncore
+import state
 from advanceddispatcher import AdvancedDispatcher
 from bmconfigparser import BMConfigParser
-from node import Peer
-
-logger = logging.getLogger('default')
+from debug import logger
 
 
 class ProxyError(Exception):
@@ -62,7 +56,7 @@ class Proxy(AdvancedDispatcher):
     def proxy(self, address):
         """Set proxy IP and port"""
         if (not isinstance(address, tuple) or len(address) < 2 or
-                not isinstance(address[0], str) or
+            not isinstance(address[0], str) or
                 not isinstance(address[1], int)):
             raise ValueError
         self.__class__._proxy = address
@@ -89,10 +83,9 @@ class Proxy(AdvancedDispatcher):
     def onion_proxy(self, address):
         """Set onion proxy address"""
         if address is not None and (
-            not isinstance(address, tuple) or len(address) < 2
-            or not isinstance(address[0], str)
-            or not isinstance(address[1], int)
-        ):
+            not isinstance(address, tuple) or len(address) < 2 or
+            not isinstance(address[0], str) or
+                not isinstance(address[1], int)):
             raise ValueError
         self.__class__._onion_proxy = address
 
@@ -107,13 +100,12 @@ class Proxy(AdvancedDispatcher):
         self.__class__._onion_auth = authTuple
 
     def __init__(self, address):
-        if not isinstance(address, Peer):
+        if not isinstance(address, state.Peer):
             raise ValueError
         AdvancedDispatcher.__init__(self)
         self.destination = address
         self.isOutbound = True
         self.fullyEstablished = False
-        self.connectedAt = 0
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
         if BMConfigParser().safeGetBoolean(
                 "bitmessagesettings", "socksauthentication"):
@@ -121,7 +113,8 @@ class Proxy(AdvancedDispatcher):
                 BMConfigParser().safeGet(
                     "bitmessagesettings", "socksusername"),
                 BMConfigParser().safeGet(
-                    "bitmessagesettings", "sockspassword"))
+                    "bitmessagesettings", "sockspassword")
+            )
         else:
             self.auth = None
         self.connect(
@@ -145,6 +138,5 @@ class Proxy(AdvancedDispatcher):
 
     def state_proxy_handshake_done(self):
         """Handshake is complete at this point"""
-        # pylint: disable=attribute-defined-outside-init
         self.connectedAt = time.time()
         return False

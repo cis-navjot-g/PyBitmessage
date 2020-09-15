@@ -1,11 +1,56 @@
-"""
-Basic infrastructure for asynchronous socket service clients and servers.
-"""
 # -*- Mode: Python -*-
 #   Id: asyncore.py,v 2.51 2000/09/07 22:29:26 rushing Exp
 #   Author: Sam Rushing <rushing@nightmare.com>
-# pylint: disable=too-many-branches,too-many-lines,global-statement
-# pylint: disable=redefined-builtin,no-self-use
+# pylint: disable=too-many-statements,too-many-branches,no-self-use,too-many-lines,attribute-defined-outside-init
+# pylint: disable=global-statement
+"""
+src/network/asyncore_pollchoose.py
+==================================
+
+# ======================================================================
+# Copyright 1996 by Sam Rushing
+#
+#                         All Rights Reserved
+#
+# Permission to use, copy, modify, and distribute this software and
+# its documentation for any purpose and without fee is hereby
+# granted, provided that the above copyright notice appear in all
+# copies and that both that copyright notice and this permission
+# notice appear in supporting documentation, and that the name of Sam
+# Rushing not be used in advertising or publicity pertaining to
+# distribution of the software without specific, written prior
+# permission.
+#
+# SAM RUSHING DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
+# INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN
+# NO EVENT SHALL SAM RUSHING BE LIABLE FOR ANY SPECIAL, INDIRECT OR
+# CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
+# OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+# NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
+# CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+# ======================================================================
+
+Basic infrastructure for asynchronous socket service clients and servers.
+
+There are only two ways to have a program on a single processor do "more
+than one thing at a time".  Multi-threaded programming is the simplest and
+most popular way to do it, but there is another very different technique,
+that lets you have nearly all the advantages of multi-threading, without
+actually using multiple threads. it's really only practical if your program
+is largely I/O bound. If your program is CPU bound, then pre-emptive
+scheduled threads are probably what you really need. Network servers are
+rarely CPU-bound, however.
+
+If your operating system supports the select() system call in its I/O
+library (and nearly all do), then you can use it to juggle multiple
+communication channels at once; doing other work while your I/O is taking
+place in the "background."  Although this strategy can seem strange and
+complex, especially at first, it is in many ways easier to understand and
+control than multi-threaded programming. The module documented here solves
+many of the difficult problems for you, making the task of building
+sophisticated high-performance network servers and clients a snap.
+"""
+
 import os
 import select
 import socket
@@ -13,9 +58,8 @@ import sys
 import time
 import warnings
 from errno import (
-    EADDRINUSE, EAGAIN, EALREADY, EBADF, ECONNABORTED, ECONNREFUSED,
-    ECONNRESET, EHOSTUNREACH, EINPROGRESS, EINTR, EINVAL, EISCONN, ENETUNREACH,
-    ENOTCONN, ENOTSOCK, EPIPE, ESHUTDOWN, ETIMEDOUT, EWOULDBLOCK, errorcode
+    EADDRINUSE, EAGAIN, EALREADY, EBADF, ECONNABORTED, ECONNREFUSED, ECONNRESET, EHOSTUNREACH, EINPROGRESS, EINTR,
+    EINVAL, EISCONN, ENETUNREACH, ENOTCONN, ENOTSOCK, EPIPE, ESHUTDOWN, ETIMEDOUT, EWOULDBLOCK, errorcode
 )
 from threading import current_thread
 
@@ -63,8 +107,7 @@ def _strerror(err):
 
 
 class ExitNow(Exception):
-    """We don't use directly but may be necessary as we replace
-    asyncore due to some library raising or expecting it"""
+    """We don't use directly but may be necessary as we replace asyncore due to some library raising or expecting it"""
     pass
 
 
@@ -109,8 +152,7 @@ def write(obj):
 def set_rates(download, upload):
     """Set throttling rates"""
 
-    global maxDownloadRate, maxUploadRate, downloadBucket
-    global uploadBucket, downloadTimestamp, uploadTimestamp
+    global maxDownloadRate, maxUploadRate, downloadBucket, uploadBucket, downloadTimestamp, uploadTimestamp
 
     maxDownloadRate = float(download) * 1024
     maxUploadRate = float(upload) * 1024
@@ -140,8 +182,7 @@ def update_received(download=0):
     currentTimestamp = time.time()
     receivedBytes += download
     if maxDownloadRate > 0:
-        bucketIncrease = \
-            maxDownloadRate * (currentTimestamp - downloadTimestamp)
+        bucketIncrease = maxDownloadRate * (currentTimestamp - downloadTimestamp)
         downloadBucket += bucketIncrease
         if downloadBucket > maxDownloadRate:
             downloadBucket = int(maxDownloadRate)
@@ -201,6 +242,7 @@ def readwrite(obj, flags):
 
 def select_poller(timeout=0.0, map=None):
     """A poller which uses select(), available on most platforms."""
+    # pylint: disable=redefined-builtin
 
     if map is None:
         map = socket_map
@@ -256,6 +298,7 @@ def select_poller(timeout=0.0, map=None):
 
 def poll_poller(timeout=0.0, map=None):
     """A poller which uses poll(), available on most UNIXen."""
+    # pylint: disable=redefined-builtin
 
     if map is None:
         map = socket_map
@@ -313,6 +356,7 @@ poll2 = poll3 = poll_poller
 
 def epoll_poller(timeout=0.0, map=None):
     """A poller which uses epoll(), supported on Linux 2.5.44 and newer."""
+    # pylint: disable=redefined-builtin
 
     if map is None:
         map = socket_map
@@ -368,7 +412,7 @@ def epoll_poller(timeout=0.0, map=None):
 
 def kqueue_poller(timeout=0.0, map=None):
     """A poller which uses kqueue(), BSD specific."""
-    # pylint: disable=no-member,too-many-statements
+    # pylint: disable=redefined-builtin,no-member
 
     if map is None:
         map = socket_map
@@ -396,20 +440,14 @@ def kqueue_poller(timeout=0.0, map=None):
                         poller_flags |= select.KQ_EV_ENABLE
                     else:
                         poller_flags |= select.KQ_EV_DISABLE
-                    updates.append(
-                        select.kevent(
-                            fd, filter=select.KQ_FILTER_READ,
-                            flags=poller_flags))
+                    updates.append(select.kevent(fd, filter=select.KQ_FILTER_READ, flags=poller_flags))
                 if kq_filter & 2 != obj.poller_filter & 2:
                     poller_flags = select.KQ_EV_ADD
                     if kq_filter & 2:
                         poller_flags |= select.KQ_EV_ENABLE
                     else:
                         poller_flags |= select.KQ_EV_DISABLE
-                    updates.append(
-                        select.kevent(
-                            fd, filter=select.KQ_FILTER_WRITE,
-                            flags=poller_flags))
+                    updates.append(select.kevent(fd, filter=select.KQ_FILTER_WRITE, flags=poller_flags))
                 obj.poller_filter = kq_filter
 
         if not selectables:
@@ -443,6 +481,7 @@ def kqueue_poller(timeout=0.0, map=None):
 
 def loop(timeout=30.0, use_poll=False, map=None, count=None, poller=None):
     """Poll in a loop, until count or timeout is reached"""
+    # pylint: disable=redefined-builtin
 
     if map is None:
         map = socket_map
@@ -481,9 +520,9 @@ def loop(timeout=30.0, use_poll=False, map=None, count=None, poller=None):
             count = count - 1
 
 
-class dispatcher(object):
+class dispatcher:
     """Dispatcher for socket objects"""
-    # pylint: disable=too-many-public-methods,too-many-instance-attributes
+    # pylint: disable=too-many-public-methods,too-many-instance-attributes,old-style-class
 
     debug = False
     connected = False
@@ -498,6 +537,7 @@ class dispatcher(object):
     minTx = 1500
 
     def __init__(self, sock=None, map=None):
+        # pylint: disable=redefined-builtin
         if map is None:
             self._map = socket_map
         else:
@@ -546,7 +586,8 @@ class dispatcher(object):
 
     def add_channel(self, map=None):
         """Add a channel"""
-        # pylint: disable=attribute-defined-outside-init
+        # pylint: disable=redefined-builtin
+
         if map is None:
             map = self._map
         map[self._fileno] = self
@@ -555,6 +596,8 @@ class dispatcher(object):
 
     def del_channel(self, map=None):
         """Delete a channel"""
+        # pylint: disable=redefined-builtin
+
         fd = self._fileno
         if map is None:
             map = self._map
@@ -562,14 +605,12 @@ class dispatcher(object):
             del map[fd]
         if self._fileno:
             try:
-                kqueue_poller.pollster.control([select.kevent(
-                    fd, select.KQ_FILTER_READ, select.KQ_EV_DELETE)], 0)
-            except(AttributeError, KeyError, TypeError, IOError, OSError):
+                kqueue_poller.pollster.control([select.kevent(fd, select.KQ_FILTER_READ, select.KQ_EV_DELETE)], 0)
+            except (AttributeError, KeyError, TypeError, IOError, OSError):
                 pass
             try:
-                kqueue_poller.pollster.control([select.kevent(
-                    fd, select.KQ_FILTER_WRITE, select.KQ_EV_DELETE)], 0)
-            except(AttributeError, KeyError, TypeError, IOError, OSError):
+                kqueue_poller.pollster.control([select.kevent(fd, select.KQ_FILTER_WRITE, select.KQ_EV_DELETE)], 0)
+            except (AttributeError, KeyError, TypeError, IOError, OSError):
                 pass
             try:
                 epoll_poller.pollster.unregister(fd)
@@ -586,10 +627,8 @@ class dispatcher(object):
         self.poller_filter = 0
         self.poller_registered = False
 
-    def create_socket(
-            self, family=socket.AF_INET, socket_type=socket.SOCK_STREAM):
+    def create_socket(self, family=socket.AF_INET, socket_type=socket.SOCK_STREAM):
         """Create a socket"""
-        # pylint: disable=attribute-defined-outside-init
         self.family_and_type = family, socket_type
         sock = socket.socket(family, socket_type)
         sock.setblocking(0)
@@ -597,16 +636,20 @@ class dispatcher(object):
 
     def set_socket(self, sock, map=None):
         """Set socket"""
+        # pylint: disable=redefined-builtin
+
         self.socket = sock
         self._fileno = sock.fileno()
         self.add_channel(map)
 
     def set_reuse_addr(self):
         """try to re-use a server port if possible"""
+
         try:
             self.socket.setsockopt(
-                socket.SOL_SOCKET, socket.SO_REUSEADDR, self.socket.getsockopt(
-                    socket.SOL_SOCKET, socket.SO_REUSEADDR) | 1
+                socket.SOL_SOCKET, socket.SO_REUSEADDR,
+                self.socket.getsockopt(socket.SOL_SOCKET,
+                                       socket.SO_REUSEADDR) | 1
             )
         except socket.error:
             pass
@@ -661,16 +704,13 @@ class dispatcher(object):
             raise socket.error(err, errorcode[err])
 
     def accept(self):
-        """Accept incoming connections.
-        Returns either an address pair or None."""
+        """Accept incoming connections. Returns either an address pair or None."""
         try:
             conn, addr = self.socket.accept()
         except TypeError:
             return None
         except socket.error as why:
-            if why.args[0] in (
-                    EWOULDBLOCK, WSAEWOULDBLOCK, ECONNABORTED,
-                    EAGAIN, ENOTCONN):
+            if why.args[0] in (EWOULDBLOCK, WSAEWOULDBLOCK, ECONNABORTED, EAGAIN, ENOTCONN):
                 return None
             else:
                 raise
@@ -729,12 +769,11 @@ class dispatcher(object):
         try:
             retattr = getattr(self.socket, attr)
         except AttributeError:
-            raise AttributeError(
-                "%s instance has no attribute '%s'"
-                % (self.__class__.__name__, attr))
+            raise AttributeError("%s instance has no attribute '%s'"
+                                 % (self.__class__.__name__, attr))
         else:
-            msg = "%(me)s.%(attr)s is deprecated; use %(me)s.socket.%(attr)s"\
-                  " instead" % {'me': self.__class__.__name__, 'attr': attr}
+            msg = "%(me)s.%(attr)s is deprecated; use %(me)s.socket.%(attr)s " \
+                  "instead" % {'me': self.__class__.__name__, 'attr': attr}
             warnings.warn(msg, DeprecationWarning, stacklevel=2)
             return retattr
 
@@ -816,8 +855,13 @@ class dispatcher(object):
 
         self.log_info(
             'uncaptured python exception, closing channel %s (%s:%s %s)' % (
-                self_repr, t, v, tbinfo),
-            'error')
+                self_repr,
+                t,
+                v,
+                tbinfo
+            ),
+            'error'
+        )
         self.handle_close()
 
     def handle_accept(self):
@@ -858,8 +902,11 @@ class dispatcher_with_send(dispatcher):
     adds simple buffered output capability, useful for simple clients.
     [for more sophisticated usage use asynchat.async_chat]
     """
+    # pylint: disable=redefined-builtin
 
     def __init__(self, sock=None, map=None):
+        # pylint: disable=redefined-builtin
+
         dispatcher.__init__(self, sock, map)
         self.out_buffer = b''
 
@@ -894,8 +941,7 @@ def compact_traceback():
     """Return a compact traceback"""
     t, v, tb = sys.exc_info()
     tbinfo = []
-    # Must have a traceback
-    if not tb:
+    if not tb:  # Must have a traceback
         raise AssertionError("traceback does not exist")
     while tb:
         tbinfo.append((
@@ -915,6 +961,7 @@ def compact_traceback():
 
 def close_all(map=None, ignore_all=False):
     """Close all connections"""
+    # pylint: disable=redefined-builtin
 
     if map is None:
         map = socket_map
@@ -951,13 +998,13 @@ def close_all(map=None, ignore_all=False):
 if os.name == 'posix':
     import fcntl
 
-    class file_wrapper:  # pylint: disable=old-style-class
+    class file_wrapper:
         """
-        Here we override just enough to make a file look
-        like a socket for the purposes of asyncore.
+        Here we override just enough to make a file look like a socket for the purposes of asyncore.
 
         The passed fd is automatically os.dup()'d
         """
+        # pylint: disable=old-style-class
 
         def __init__(self, fd):
             self.fd = os.dup(fd)
@@ -972,11 +1019,12 @@ if os.name == 'posix':
 
         def getsockopt(self, level, optname, buflen=None):
             """Fake getsockopt()"""
-            if (level == socket.SOL_SOCKET and optname == socket.SO_ERROR and
+            if (level == socket.SOL_SOCKET and
+                    optname == socket.SO_ERROR and
                     not buflen):
                 return 0
-            raise NotImplementedError(
-                "Only asyncore specific behaviour implemented.")
+            raise NotImplementedError("Only asyncore specific behaviour "
+                                      "implemented.")
 
         read = recv
         write = send
@@ -993,6 +1041,8 @@ if os.name == 'posix':
         """A dispatcher for file_wrapper objects"""
 
         def __init__(self, fd, map=None):
+            # pylint: disable=redefined-builtin
+
             dispatcher.__init__(self, None, map)
             self.connected = True
             try:

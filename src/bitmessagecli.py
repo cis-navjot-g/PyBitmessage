@@ -13,15 +13,15 @@ TODO: fix the following (currently ignored) violations:
 
 """
 
+import xmlrpclib
 import datetime
 import imghdr
-import json
 import ntpath
-import os
+import json
 import socket
-import sys
 import time
-import xmlrpclib
+import sys
+import os
 
 from bmconfigparser import BMConfigParser
 

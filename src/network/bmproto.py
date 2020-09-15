@@ -1,10 +1,5 @@
-"""
-Bitmessage Protocol
-"""
-# pylint: disable=attribute-defined-outside-init, too-few-public-methods
 import base64
 import hashlib
-import logging
 import socket
 import struct
 import time
@@ -16,25 +11,19 @@ import knownnodes
 import protocol
 import state
 from bmconfigparser import BMConfigParser
+from debug import logger
 from inventory import Inventory
 from network.advanceddispatcher import AdvancedDispatcher
-from network.bmobject import (
-    BMObject, BMObjectAlreadyHaveError, BMObjectExpiredError,
-    BMObjectInsufficientPOWError, BMObjectInvalidDataError,
-    BMObjectInvalidError, BMObjectUnwantedStreamError
-)
-from network.constants import (
-    ADDRESS_ALIVE, MAX_MESSAGE_SIZE, MAX_OBJECT_COUNT,
-    MAX_OBJECT_PAYLOAD_SIZE, MAX_TIME_OFFSET
-)
 from network.dandelion import Dandelion
+from network.bmobject import (
+    BMObject, BMObjectInsufficientPOWError, BMObjectInvalidDataError,
+    BMObjectExpiredError, BMObjectUnwantedStreamError,
+    BMObjectInvalidError, BMObjectAlreadyHaveError)
+from network.node import Node
 from network.proxy import ProxyError
-from node import Node, Peer
-from objectracker import ObjectTracker, missingObjects
-from queues import invQueue, objectProcessorQueue, portCheckerQueue
+from objectracker import missingObjects, ObjectTracker
+from queues import objectProcessorQueue, portCheckerQueue, invQueue, addrQueue
 from randomtrackingdict import RandomTrackingDict
-
-logger = logging.getLogger('default')
 
 
 class BMProtoError(ProxyError):
@@ -54,18 +43,26 @@ class BMProtoExcessiveDataError(BMProtoError):
 
 class BMProto(AdvancedDispatcher, ObjectTracker):
     """A parser for the Bitmessage Protocol"""
-    # pylint: disable=too-many-instance-attributes, too-many-public-methods
+    # ~1.6 MB which is the maximum possible size of an inv message.
+    maxMessageSize = 1600100
+    # 2**18 = 256kB is the maximum size of an object payload
+    maxObjectPayloadSize = 2**18
+    # protocol specification says max 1000 addresses in one addr command
+    maxAddrCount = 1000
+    # protocol specification says max 50000 objects in one inv command
+    maxObjectCount = 50000
+    # address is online if online less than this many seconds ago
+    addressAlive = 10800
+    # maximum time offset
+    maxTimeOffset = 3600
     timeOffsetWrongCount = 0
 
     def __init__(self, address=None, sock=None):
-        # pylint: disable=unused-argument, super-init-not-called
         AdvancedDispatcher.__init__(self, sock)
         self.isOutbound = False
         # packet/connection from a local IP
         self.local = False
         self.pendingUpload = RandomTrackingDict()
-        # canonical identifier of network group
-        self.network_group = None
 
     def bm_proto_reset(self):
         """Reset the bitmessage object parser"""
@@ -93,14 +90,14 @@ class BMProto(AdvancedDispatcher, ObjectTracker):
                 self.close_reason = "Bad magic"
                 self.set_state("close")
             return False
-        if self.payloadLength > MAX_MESSAGE_SIZE:
+        if self.payloadLength > BMProto.maxMessageSize:
             self.invalid = True
         self.set_state(
             "bm_command",
             length=protocol.Header.size, expectBytes=self.payloadLength)
         return True
 
-    def state_bm_command(self):     # pylint: disable=too-many-branches
+    def state_bm_command(self):
         """Process incoming command"""
         self.payload = self.read_buf[:self.payloadLength]
         if self.checksum != hashlib.sha512(self.payload).digest()[0:4]:
@@ -162,8 +159,7 @@ class BMProto(AdvancedDispatcher, ObjectTracker):
 
     def decode_payload_varint(self):
         """Decode a varint from the payload"""
-        value, offset = addresses.decodeVarint(
-            self.payload[self.payloadOffset:])
+        value, offset = addresses.decodeVarint(self.payload[self.payloadOffset:])
         self.payloadOffset += offset
         return value
 
@@ -185,7 +181,6 @@ class BMProto(AdvancedDispatcher, ObjectTracker):
 
         return Node(services, host, port)
 
-    # pylint: disable=too-many-branches, too-many-statements
     def decode_payload_content(self, pattern="v"):
         """
         Decode the payload depending on pattern:
@@ -202,7 +197,6 @@ class BMProto(AdvancedDispatcher, ObjectTracker):
         , = end of array
         """
 
-        # pylint: disable=inconsistent-return-statements
         def decode_simple(self, char="v"):
             """Decode the payload using one char pattern"""
             if char == "v":
@@ -236,7 +230,7 @@ class BMProto(AdvancedDispatcher, ObjectTracker):
         while True:
             i = parserStack[-1][3][parserStack[-1][4]]
             if i in "0123456789" and (
-                    size is None or parserStack[-1][3][parserStack[-1][4] - 1]
+                size is None or parserStack[-1][3][parserStack[-1][4] - 1]
                     not in "lL"):
                 try:
                     size = size * 10 + int(i)
@@ -257,7 +251,6 @@ class BMProto(AdvancedDispatcher, ObjectTracker):
                     for j in range(parserStack[-1][4], len(parserStack[-1][3])):
                         if parserStack[-1][3][j] not in "lL0123456789":
                             break
-                    # pylint: disable=undefined-loop-variable
                     parserStack.append([
                         size, size, isArray,
                         parserStack[-1][3][parserStack[-1][4]:j + 1], 0, []
@@ -313,11 +306,8 @@ class BMProto(AdvancedDispatcher, ObjectTracker):
 
     def bm_command_error(self):
         """Decode an error message and log it"""
-        err_values = self.decode_payload_content("vvlsls")
-        fatalStatus = err_values[0]
-        # banTime = err_values[1]
-        # inventoryVector = err_values[2]
-        errorText = err_values[3]
+        fatalStatus, banTime, inventoryVector, errorText = \
+            self.decode_payload_content("vvlsls")
         logger.error(
             '%s:%i error: %i, %s', self.destination.host,
             self.destination.port, fatalStatus, errorText)
@@ -341,7 +331,7 @@ class BMProto(AdvancedDispatcher, ObjectTracker):
     def _command_inv(self, dandelion=False):
         items = self.decode_payload_content("l32s")
 
-        if len(items) > MAX_OBJECT_COUNT:
+        if len(items) > BMProto.maxObjectCount:
             logger.error(
                 'Too many items in %sinv message!', 'd' if dandelion else '')
             raise BMProtoExcessiveDataError()
@@ -376,7 +366,7 @@ class BMProto(AdvancedDispatcher, ObjectTracker):
             nonce, expiresTime, objectType, version, streamNumber,
             self.payload, self.payloadOffset)
 
-        if len(self.payload) - self.payloadOffset > MAX_OBJECT_PAYLOAD_SIZE:
+        if len(self.payload) - self.payloadOffset > BMProto.maxObjectPayloadSize:
             logger.info(
                 'The payload length of this object is too large (%d bytes).'
                 ' Ignoring it.', len(self.payload) - self.payloadOffset)
@@ -412,10 +402,8 @@ class BMProto(AdvancedDispatcher, ObjectTracker):
             except KeyError:
                 pass
 
-        if self.object.inventoryHash in Inventory() and Dandelion().hasHash(
-                self.object.inventoryHash):
-            Dandelion().removeHash(
-                self.object.inventoryHash, "cycle detection")
+        if self.object.inventoryHash in Inventory() and Dandelion().hasHash(self.object.inventoryHash):
+            Dandelion().removeHash(self.object.inventoryHash, "cycle detection")
 
         Inventory()[self.object.inventoryHash] = (
             self.object.objectType, self.object.streamNumber,
@@ -434,46 +422,39 @@ class BMProto(AdvancedDispatcher, ObjectTracker):
 
     def bm_command_addr(self):
         """Incoming addresses, process them"""
-        # pylint: disable=redefined-outer-name
         addresses = self._decode_addr()
-        for seenTime, stream, _, ip, port in addresses:
+        for i in addresses:
+            seenTime, stream, services, ip, port = i
             decodedIP = protocol.checkIPAddress(str(ip))
             if stream not in state.streamsInWhichIAmParticipating:
                 continue
             if (
                 decodedIP and time.time() - seenTime > 0 and
-                seenTime > time.time() - ADDRESS_ALIVE and
+                seenTime > time.time() - BMProto.addressAlive and
                 port > 0
             ):
-                peer = Peer(decodedIP, port)
+                peer = state.Peer(decodedIP, port)
                 try:
-                    if knownnodes.knownNodes[stream][peer]["lastseen"] > \
-                            seenTime:
+                    if knownnodes.knownNodes[stream][peer]["lastseen"] > seenTime:
                         continue
                 except KeyError:
                     pass
-                if len(knownnodes.knownNodes[stream]) < \
-                        BMConfigParser().safeGetInt("knownnodes", "maxnodes"):
+                if len(knownnodes.knownNodes[stream]) < BMConfigParser().safeGetInt("knownnodes", "maxnodes"):
                     with knownnodes.knownNodesLock:
                         try:
-                            knownnodes.knownNodes[stream][peer]["lastseen"] = \
-                                seenTime
+                            knownnodes.knownNodes[stream][peer]["lastseen"] = seenTime
                         except (TypeError, KeyError):
                             knownnodes.knownNodes[stream][peer] = {
                                 "lastseen": seenTime,
                                 "rating": 0,
                                 "self": False,
                             }
-                    # since we don't track peers outside of knownnodes,
-                    # only spread if in knownnodes to prevent flood
-                    # DISABLED TO WORKAROUND FLOOD/LEAK
-                    # addrQueue.put((stream, peer, seenTime,
-                    #               self.destination))
+                addrQueue.put((stream, peer, self.destination))
         return True
 
     def bm_command_portcheck(self):
         """Incoming port check request, queue it."""
-        portCheckerQueue.put(Peer(self.destination, self.peerNode.port))
+        portCheckerQueue.put(state.Peer(self.destination, self.peerNode.port))
         return True
 
     def bm_command_ping(self):
@@ -481,7 +462,7 @@ class BMProto(AdvancedDispatcher, ObjectTracker):
         self.append_write_buf(protocol.CreatePacket('pong'))
         return True
 
-    def bm_command_pong(self):  # pylint: disable=no-self-use
+    def bm_command_pong(self):
         """
         Incoming pong.
         Ignore it. PyBitmessage pings connections after about 5 minutes
@@ -519,7 +500,7 @@ class BMProto(AdvancedDispatcher, ObjectTracker):
         self.timeOffset = self.timestamp - int(time.time())
         logger.debug('remoteProtocolVersion: %i', self.remoteProtocolVersion)
         logger.debug('services: 0x%08X', self.services)
-        logger.debug('time offset: %i', self.timeOffset)
+        logger.debug('time offset: %i', self.timestamp - int(time.time()))
         logger.debug('my external IP: %s', self.sockNode.host)
         logger.debug(
             'remote node incoming address: %s:%i',
@@ -549,7 +530,6 @@ class BMProto(AdvancedDispatcher, ObjectTracker):
             length=self.payloadLength, expectBytes=0)
         return False
 
-    # pylint: disable=too-many-return-statements
     def peerValidityChecks(self):
         """Check the validity of the peer"""
         if self.remoteProtocolVersion < 3:
@@ -560,16 +540,16 @@ class BMProto(AdvancedDispatcher, ObjectTracker):
                 'Closing connection to old protocol version %s, node: %s',
                 self.remoteProtocolVersion, self.destination)
             return False
-        if self.timeOffset > MAX_TIME_OFFSET:
+        if self.timeOffset > BMProto.maxTimeOffset:
             self.append_write_buf(protocol.assembleErrorMessage(
-                errorText="Your time is too far in the future"
-                " compared to mine. Closing connection.", fatal=2))
+                errorText="Your time is too far in the future compared to mine."
+                " Closing connection.", fatal=2))
             logger.info(
                 "%s's time is too far in the future (%s seconds)."
                 " Closing connection to it.", self.destination, self.timeOffset)
             BMProto.timeOffsetWrongCount += 1
             return False
-        elif self.timeOffset < -MAX_TIME_OFFSET:
+        elif self.timeOffset < -BMProto.maxTimeOffset:
             self.append_write_buf(protocol.assembleErrorMessage(
                 errorText="Your time is too far in the past compared to mine."
                 " Closing connection.", fatal=2))
@@ -585,8 +565,8 @@ class BMProto(AdvancedDispatcher, ObjectTracker):
                 errorText="We don't have shared stream interests."
                 " Closing connection.", fatal=2))
             logger.debug(
-                'Closed connection to %s because there is no overlapping'
-                ' interest in streams.', self.destination)
+                'Closed connection to %s because there is no overlapping interest'
+                ' in streams.', self.destination)
             return False
         if self.destination in connectionpool.BMConnectionPool().inboundConnections:
             try:
@@ -595,8 +575,8 @@ class BMProto(AdvancedDispatcher, ObjectTracker):
                         errorText="Too many connections from your IP."
                         " Closing connection.", fatal=2))
                     logger.debug(
-                        'Closed connection to %s because we are already'
-                        ' connected to that IP.', self.destination)
+                        'Closed connection to %s because we are already connected'
+                        ' to that IP.', self.destination)
                     return False
             except:
                 pass
@@ -604,14 +584,12 @@ class BMProto(AdvancedDispatcher, ObjectTracker):
             # incoming from a peer we're connected to as outbound,
             # or server full report the same error to counter deanonymisation
             if (
-                Peer(self.destination.host, self.peerNode.port)
-                in connectionpool.BMConnectionPool().inboundConnections
-                or len(connectionpool.BMConnectionPool().inboundConnections)
-                + len(connectionpool.BMConnectionPool().outboundConnections)
-                > BMConfigParser().safeGetInt(
-                    'bitmessagesettings', 'maxtotalconnections')
-                + BMConfigParser().safeGetInt(
-                    'bitmessagesettings', 'maxbootstrapconnections')
+                state.Peer(self.destination.host, self.peerNode.port) in
+                connectionpool.BMConnectionPool().inboundConnections or
+                len(connectionpool.BMConnectionPool().inboundConnections) +
+                len(connectionpool.BMConnectionPool().outboundConnections) >
+                BMConfigParser().safeGetInt("bitmessagesettings", "maxtotalconnections") +
+                BMConfigParser().safeGetInt("bitmessagesettings", "maxbootstrapconnections")
             ):
                 self.append_write_buf(protocol.assembleErrorMessage(
                     errorText="Server full, please try again later.", fatal=2))
@@ -632,9 +610,35 @@ class BMProto(AdvancedDispatcher, ObjectTracker):
         return True
 
     @staticmethod
+    def assembleAddr(peerList):
+        """Build up a packed address"""
+        if isinstance(peerList, state.Peer):
+            peerList = (peerList)
+        if not peerList:
+            return b''
+        retval = b''
+        for i in range(0, len(peerList), BMProto.maxAddrCount):
+            payload = addresses.encodeVarint(
+                len(peerList[i:i + BMProto.maxAddrCount]))
+            for address in peerList[i:i + BMProto.maxAddrCount]:
+                stream, peer, timestamp = address
+                payload += struct.pack(
+                    '>Q', timestamp)  # 64-bit time
+                payload += struct.pack('>I', stream)
+                payload += struct.pack(
+                    '>q', 1)  # service bit flags offered by this node
+                payload += protocol.encodeHost(peer.host)
+                payload += struct.pack('>H', peer.port)  # remote port
+            retval += protocol.CreatePacket('addr', payload)
+        return retval
+
+    @staticmethod
     def stopDownloadingObject(hashId, forwardAnyway=False):
         """Stop downloading an object"""
-        for connection in connectionpool.BMConnectionPool().connections():
+        for connection in (
+            connectionpool.BMConnectionPool().inboundConnections.values() +
+            connectionpool.BMConnectionPool().outboundConnections.values()
+        ):
             try:
                 del connection.objectsNewToMe[hashId]
             except KeyError:
@@ -675,7 +679,7 @@ class BMStringParser(BMProto):
     """
     def __init__(self):
         super(BMStringParser, self).__init__()
-        self.destination = Peer('127.0.0.1', 8444)
+        self.destination = state.Peer('127.0.0.1', 8444)
         self.payload = None
         ObjectTracker.__init__(self)
 

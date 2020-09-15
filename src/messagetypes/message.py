@@ -1,30 +1,24 @@
-import logging
-
+from debug import logger
 from messagetypes import MsgBase
-# pylint: disable=attribute-defined-outside-init
-
-logger = logging.getLogger('default')
 
 
 class Message(MsgBase):
-    """Encapsulate a message"""
-    # pylint: disable=attribute-defined-outside-init
+    def __init__(self):
+        return
 
     def decode(self, data):
-        """Decode a message"""
         # UTF-8 and variable type validator
-        if isinstance(data["subject"], str):
+        if type(data["subject"]) is str:
             self.subject = unicode(data["subject"], 'utf-8', 'replace')
         else:
             self.subject = unicode(str(data["subject"]), 'utf-8', 'replace')
-        if isinstance(data["body"], str):
+        if type(data["body"]) is str:
             self.body = unicode(data["body"], 'utf-8', 'replace')
         else:
             self.body = unicode(str(data["body"]), 'utf-8', 'replace')
 
     def encode(self, data):
-        """Encode a message"""
-        super(Message, self).__init__()
+        super(Message, self).encode()
         try:
             self.data["subject"] = data["subject"]
             self.data["body"] = data["body"]
@@ -33,6 +27,5 @@ class Message(MsgBase):
         return self.data
 
     def process(self):
-        """Process a message"""
         logger.debug("Subject: %i bytes", len(self.subject))
         logger.debug("Body: %i bytes", len(self.body))

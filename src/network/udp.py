@@ -1,31 +1,23 @@
-"""
-UDP protocol handler
-"""
-import logging
-import socket
 import time
+import socket
 
-import protocol
 import state
+import protocol
 from bmproto import BMProto
-from node import Peer
+from debug import logger
 from objectracker import ObjectTracker
 from queues import receiveDataQueue
 
-logger = logging.getLogger('default')
 
-
-class UDPSocket(BMProto):  # pylint: disable=too-many-instance-attributes
-    """Bitmessage protocol over UDP (class)"""
+class UDPSocket(BMProto):
     port = 8444
     announceInterval = 60
 
     def __init__(self, host=None, sock=None, announcing=False):
-        # pylint: disable=bad-super-call
         super(BMProto, self).__init__(sock=sock)
         self.verackReceived = True
         self.verackSent = True
-        # .. todo:: sort out streams
+        # TODO sort out streams
         self.streams = [1]
         self.fullyEstablished = True
         self.connectedAt = 0
@@ -43,8 +35,8 @@ class UDPSocket(BMProto):  # pylint: disable=too-many-instance-attributes
         else:
             self.socket = sock
             self.set_socket_reuse()
-        self.listening = Peer(*self.socket.getsockname())
-        self.destination = Peer(*self.socket.getsockname())
+        self.listening = state.Peer(*self.socket.getsockname())
+        self.destination = state.Peer(*self.socket.getsockname())
         ObjectTracker.__init__(self)
         self.connecting = False
         self.connected = True
@@ -52,7 +44,6 @@ class UDPSocket(BMProto):  # pylint: disable=too-many-instance-attributes
         self.set_state("bm_header", expectBytes=protocol.Header.size)
 
     def set_socket_reuse(self):
-        """Set socket reuse option"""
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         try:
@@ -78,12 +69,12 @@ class UDPSocket(BMProto):  # pylint: disable=too-many-instance-attributes
         if not self.local:
             return True
         remoteport = False
-        for seenTime, stream, _, ip, port in addresses:
+        for seenTime, stream, services, ip, port in addresses:
             decodedIP = protocol.checkIPAddress(str(ip))
             if stream not in state.streamsInWhichIAmParticipating:
                 continue
-            if (seenTime < time.time() - self.maxTimeOffset
-                    or seenTime > time.time() + self.maxTimeOffset):
+            if (seenTime < time.time() - self.maxTimeOffset or
+                    seenTime > time.time() + self.maxTimeOffset):
                 continue
             if decodedIP is False:
                 # if the address isn't local, interpret it as
@@ -95,8 +86,9 @@ class UDPSocket(BMProto):  # pylint: disable=too-many-instance-attributes
             "received peer discovery from %s:%i (port %i):",
             self.destination.host, self.destination.port, remoteport)
         if self.local:
-            state.discoveredPeers[Peer(self.destination.host, remoteport)] = \
-                time.time()
+            state.discoveredPeers[
+                state.Peer(self.destination.host, remoteport)
+            ] = time.time()
         return True
 
     def bm_command_portcheck(self):
@@ -130,9 +122,12 @@ class UDPSocket(BMProto):  # pylint: disable=too-many-instance-attributes
             logger.error("socket error: %s", e)
             return
 
-        self.destination = Peer(*addr)
+        self.destination = state.Peer(*addr)
         encodedAddr = protocol.encodeHost(addr[0])
-        self.local = bool(protocol.checkIPAddress(encodedAddr, True))
+        if protocol.checkIPAddress(encodedAddr, True):
+            self.local = True
+        else:
+            self.local = False
         # overwrite the old buffer to avoid mixing data and so that
         # self.local works correctly
         self.read_buf[0:] = recdata
@@ -144,9 +139,6 @@ class UDPSocket(BMProto):  # pylint: disable=too-many-instance-attributes
             retval = self.socket.sendto(
                 self.write_buf, ('<broadcast>', self.port))
         except socket.error as e:
-            logger.error("socket error on sendto: %s", e)
-            if e.errno == 101:
-                self.announcing = False
-                self.socket.close()
+            logger.error("socket error on sendato: %s", e)
             retval = 0
         self.slice_write_buf(retval)

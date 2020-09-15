@@ -1,12 +1,13 @@
 """
-SOCKS5 proxy module
+src/network/socks5.py
+=====================
+
 """
 # pylint: disable=attribute-defined-outside-init
 
 import socket
 import struct
 
-from node import Peer
 from proxy import GeneralProxyError, Proxy, ProxyError
 
 
@@ -65,9 +66,10 @@ class Socks5(Proxy):
         elif ret[1] == 2:
             # username/password
             self.append_write_buf(
-                struct.pack(
-                    'BB', 1, len(self._auth[0])) + self._auth[0] + struct.pack(
-                        'B', len(self._auth[1])) + self._auth[1])
+                struct.pack('BB', 1, len(self._auth[0])) +
+                self._auth[0] + struct.pack('B', len(self._auth[1])) +
+                self._auth[1]
+            )
             self.set_state("auth_needed", length=2, expectBytes=2)
         else:
             if ret[1] == 0xff:
@@ -153,13 +155,15 @@ class Socks5(Proxy):
         return True
 
     def proxy_sock_name(self):
-        """Handle return value when using SOCKS5
-        for DNS resolving instead of connecting."""
+        """Handle return value when using SOCKS5 for DNS resolving instead of connecting."""
         return socket.inet_ntoa(self.__proxysockname[0])
 
 
 class Socks5Connection(Socks5):
     """Child socks5 class used for making outbound connections."""
+    def __init__(self, address):
+        Socks5.__init__(self, address=address)
+
     def state_auth_done(self):
         """Request connection to be made"""
         # Now we can request the actual connection
@@ -169,13 +173,16 @@ class Socks5Connection(Socks5):
         try:
             self.ipaddr = socket.inet_aton(self.destination[0])
             self.append_write_buf(chr(0x01).encode() + self.ipaddr)
-        except socket.error:  # may be IPv6!
+        except socket.error:
             # Well it's not an IP number,  so it's probably a DNS name.
-            if self._remote_dns:
+            if Proxy._remote_dns:  # pylint: disable=protected-access
                 # Resolve remotely
                 self.ipaddr = None
-                self.append_write_buf(chr(0x03).encode() + chr(
-                    len(self.destination[0])).encode() + self.destination[0])
+                self.append_write_buf(
+                    chr(0x03).encode() +
+                    chr(len(self.destination[0])).encode() +
+                    self.destination[0]
+                )
             else:
                 # Resolve locally
                 self.ipaddr = socket.inet_aton(
@@ -199,14 +206,16 @@ class Socks5Resolver(Socks5):
     def __init__(self, host):
         self.host = host
         self.port = 8444
-        Socks5.__init__(self, address=Peer(self.host, self.port))
+        Socks5.__init__(self, address=(self.host, self.port))
 
     def state_auth_done(self):
         """Perform resolving"""
         # Now we can request the actual connection
         self.append_write_buf(struct.pack('BBB', 0x05, 0xF0, 0x00))
-        self.append_write_buf(chr(0x03).encode() + chr(
-            len(self.host)).encode() + str(self.host))
+        self.append_write_buf(
+            chr(0x03).encode() + chr(len(self.host)).encode() +
+            str(self.host)
+        )
         self.append_write_buf(struct.pack(">H", self.port))
         self.set_state("pre_connect", length=0, expectBytes=4)
         return True

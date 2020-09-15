@@ -1,10 +1,10 @@
 [app]
 
 # (str) Title of your application
-title = bitapp
+title = PyBitmessage
 
 # (str) Package name
-package.name = bitapp
+package.name = PyBitmessage
 
 # (str) Package domain (needed for android/ios packaging)
 package.domain = org.test
@@ -13,7 +13,7 @@ package.domain = org.test
 source.dir = .
 
 # (list) Source files to include (let empty to include all the files)
-source.include_exts = py,png,jpg,kv,atlas,gif,zip
+source.include_exts = py,png,jpg,kv,atlas
 
 # (list) List of inclusions using pattern matching
 #source.include_patterns = assets/*,images/*.png
@@ -35,25 +35,16 @@ version = 0.1
 # version.filename = %(source.dir)s/main.py
 
 # (list) Application requirements
-# comma separated e.g. requirements = sqlite3,kivy
-requirements = 
-	openssl, 
-	sqlite3,
-	python2,
-	kivy, 
-	bitmsghash, 
-	kivymd,
-	kivy-garden, 
-	qrcode,
-	Pillow,
-	msgpack
+# comma seperated e.g. requirements = sqlite3,kivy
+requirements = python2, sqlite3, kivy, openssl
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
 # requirements.source.kivy = ../../kivy
+#requirements.source.sqlite3 =
 
 # (list) Garden requirements
-garden_requirements = qrcode
+#garden_requirements =
 
 # (str) Presplash of the application
 #presplash.filename = %(source.dir)s/data/presplash.png
@@ -75,7 +66,8 @@ orientation = portrait
 # author = © Copyright Info
 
 # change the major version of python used by the app
-osx.python_version = 3
+#osx.python_version = 2
+
 
 # Kivy version to use
 osx.kivy_version = 1.9.1
@@ -95,22 +87,22 @@ fullscreen = 0
 #android.presplash_color = #FFFFFF
 
 # (list) Permissions
-android.permissions = INTERNET, WRITE_EXTERNAL_STORAGE, READ_EXTERNAL_STORAGE
+android.permissions = INTERNET
 
 # (int) Android API to use
-android.api = 27
+#android.api = 19
 
 # (int) Minimum API required
-android.minapi = 21
+#android.minapi = 9
 
 # (int) Android SDK version to use
-android.sdk = 20
+#android.sdk = 20
 
 # (str) Android NDK version to use
-android.ndk = 17c
+#android.ndk = 9c
 
 # (bool) Use --private data storage (True) or --dir public storage (False)
-# android.private_storage = True
+#android.private_storage = True
 
 # (str) Android NDK directory (if empty, it will be automatically downloaded.)
 #android.ndk_path =
@@ -131,6 +123,9 @@ android.ndk = 17c
 
 # (list) Pattern to whitelist for the whole project
 #android.whitelist =
+
+android.whitelist = /usr/lib/komodo-edit/python/lib/python2.7/lib-dynload/_sqlite3.so
+
 
 # (str) Path to a custom whitelist file
 #android.whitelist_src =
@@ -155,12 +150,9 @@ android.ndk = 17c
 # (list) Gradle dependencies to add (currently works only with sdl2_gradle
 # bootstrap)
 #android.gradle_dependencies =
-
-# (list) Java classes to add as activities to the manifest.
-#android.add_activites = com.example.ExampleActivity
-
+, /home/cis/Downloads/libssl1.0.2_1.0.2l-2+deb9u2_amd64
 # (str) python-for-android branch to use, defaults to stable
-p4a.branch = release-2019.07.08
+#p4a.branch = stable
 
 # (str) OUYA Console category. Should be one of GAME or APP
 # If you leave this blank, OUYA support will not be enabled
@@ -172,10 +164,7 @@ p4a.branch = release-2019.07.08
 # (str) XML file to include as an intent filters in <activity> tag
 #android.manifest.intent_filters =
 
-# (str) launchMode to set for the main activity
-#android.manifest.launch_mode = standard
-
-# (list) Android additional libraries to copy into libs/armeabi
+# (list) Android additionnal libraries to copy into libs/armeabi
 #android.add_libs_armeabi = libs/android/*.so
 #android.add_libs_armeabi_v7a = libs/android-v7/*.so
 #android.add_libs_x86 = libs/android-x86/*.so
@@ -209,16 +198,13 @@ android.arch = armeabi-v7a
 #p4a.source_dir =
 
 # (str) The directory in which python-for-android should look for your own build recipes (if any)
-p4a.local_recipes = /home/cis/navjotrepo/PyBitmessage/src/bitmessagekivy/android/python-for-android/recipes/
+#p4a.local_recipes =
 
 # (str) Filename to the hook for p4a
 #p4a.hook =
 
 # (str) Bootstrap to use for android builds
 # p4a.bootstrap = sdl2
-
-# (int) port number to specify an explicit --port= p4a argument (eg for bootstrap flask)
-#p4a.port =
 
 
 #

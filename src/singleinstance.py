@@ -1,13 +1,8 @@
-"""
-This is based upon the singleton class from
-`tendo <https://github.com/pycontribs/tendo>`_
-which is under the Python Software Foundation License version 2
-"""
+#! /usr/bin/env python
 
 import atexit
 import os
 import sys
-
 import state
 
 try:
@@ -16,10 +11,14 @@ except ImportError:
     pass
 
 
-class singleinstance(object):
+class singleinstance:
     """
     Implements a single instance application by creating a lock file
     at appdata.
+
+    This is based upon the singleton class from tendo
+    https://github.com/pycontribs/tendo
+    which is under the Python Software Foundation License version 2
     """
     def __init__(self, flavor_id="", daemon=False):
         self.initialized = False
@@ -29,7 +28,7 @@ class singleinstance(object):
         self.lockfile = os.path.normpath(
             os.path.join(state.appdata, 'singleton%s.lock' % flavor_id))
 
-        if state.enableGUI and not state.kivy and not self.daemon and not state.curses:
+        if state.enableGUI and not self.daemon and not state.curses:
             # Tells the already running (if any) application to get focus.
             import bitmessageqt
             bitmessageqt.init()
@@ -40,7 +39,6 @@ class singleinstance(object):
         atexit.register(self.cleanup)
 
     def lock(self):
-        """Obtain single instance lock"""
         if self.lockPid is None:
             self.lockPid = os.getpid()
         if sys.platform == 'win32':
@@ -53,7 +51,8 @@ class singleinstance(object):
                     self.lockfile,
                     os.O_CREAT | os.O_EXCL | os.O_RDWR | os.O_TRUNC
                 )
-            except OSError as e:
+            except OSError:
+                type, e, tb = sys.exc_info()
                 if e.errno == 13:
                     print(
                         'Another instance of this application'
@@ -84,7 +83,6 @@ class singleinstance(object):
                 self.fp.flush()
 
     def cleanup(self):
-        """Release single instance lock"""
         if not self.initialized:
             return
         if self.daemon and self.lockPid == os.getpid():
@@ -95,7 +93,7 @@ class singleinstance(object):
                         os.close(self.fd)
                 else:
                     fcntl.lockf(self.fp, fcntl.LOCK_UN)
-            except Exception:
+            except Exception, e:
                 pass
 
             return

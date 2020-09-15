@@ -1,10 +1,10 @@
-"""
-Wrappers for hash functions from OpenSSL.
-"""
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 #  Copyright (C) 2011 Yann GUIBET <yannguibet@gmail.com>
 #  See LICENSE for details.
 
-from openssl import OpenSSL
+from pyelliptic.openssl import OpenSSL
 
 
 # For python3
@@ -27,10 +27,10 @@ def _equals_str(a, b):
 
 
 def equals(a, b):
-    """Compare two strings or bytearrays"""
     if isinstance(a, str):
         return _equals_str(a, b)
-    return _equals_bytes(a, b)
+    else:
+        return _equals_bytes(a, b)
 
 
 def hmac_sha256(k, m):
@@ -58,7 +58,6 @@ def hmac_sha512(k, m):
 
 
 def pbkdf2(password, salt=None, i=10000, keylen=64):
-    """Key derivation function using SHA256"""
     if salt is None:
         salt = OpenSSL.rand(8)
     p_password = OpenSSL.malloc(password, len(password))

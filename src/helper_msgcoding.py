@@ -5,11 +5,6 @@ Message encoding end decoding functions
 import string
 import zlib
 
-import messagetypes
-from bmconfigparser import BMConfigParser
-from debug import logger
-from tr import _translate
-
 try:
     import msgpack
 except ImportError:
@@ -18,6 +13,11 @@ except ImportError:
     except ImportError:
         import fallback.umsgpack.umsgpack as msgpack
 
+import messagetypes
+from bmconfigparser import BMConfigParser
+from debug import logger
+from tr import _translate
+
 BITMESSAGE_ENCODING_IGNORE = 0
 BITMESSAGE_ENCODING_TRIVIAL = 1
 BITMESSAGE_ENCODING_SIMPLE = 2
@@ -25,24 +25,19 @@ BITMESSAGE_ENCODING_EXTENDED = 3
 
 
 class MsgEncodeException(Exception):
-    """Exception during message encoding"""
     pass
 
 
 class MsgDecodeException(Exception):
-    """Exception during message decoding"""
     pass
 
 
 class DecompressionSizeException(MsgDecodeException):
-    # pylint: disable=super-init-not-called
-    """Decompression resulted in too much data (attack protection)"""
     def __init__(self, size):
         self.size = size
 
 
 class MsgEncode(object):
-    """Message encoder class"""
     def __init__(self, message, encoding=BITMESSAGE_ENCODING_SIMPLE):
         self.data = None
         self.encoding = encoding
@@ -57,7 +52,6 @@ class MsgEncode(object):
             raise MsgEncodeException("Unknown encoding %i" % (encoding))
 
     def encodeExtended(self, message):
-        """Handle extended encoding"""
         try:
             msgObj = messagetypes.message.Message()
             self.data = zlib.compress(msgpack.dumps(msgObj.encode(message)), 9)
@@ -70,18 +64,15 @@ class MsgEncode(object):
         self.length = len(self.data)
 
     def encodeSimple(self, message):
-        """Handle simple encoding"""
         self.data = 'Subject:%(subject)s\nBody:%(body)s' % message
         self.length = len(self.data)
 
     def encodeTrivial(self, message):
-        """Handle trivial encoding"""
         self.data = message['body']
         self.length = len(self.data)
 
 
 class MsgDecode(object):
-    """Message decoder class"""
     def __init__(self, encoding, data):
         self.encoding = encoding
         if self.encoding == BITMESSAGE_ENCODING_EXTENDED:
@@ -97,7 +88,6 @@ class MsgDecode(object):
             self.subject = _translate("MsgDecode", "Unknown encoding")
 
     def decodeExtended(self, data):
-        """Handle extended encoding"""
         dc = zlib.decompressobj()
         tmp = ""
         while len(tmp) <= BMConfigParser().safeGetInt("zlib", "maxsize"):
@@ -141,7 +131,6 @@ class MsgDecode(object):
             self.body = msgObj.body
 
     def decodeSimple(self, data):
-        """Handle simple encoding"""
         bodyPositionIndex = string.find(data, '\nBody:')
         if bodyPositionIndex > 1:
             subject = data[8:bodyPositionIndex]

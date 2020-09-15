@@ -1,22 +1,28 @@
-"""
-Process data incoming from network
-"""
 import errno
 import Queue
 import socket
+import sys
+import threading
+import time
 
-import state
-from network.advanceddispatcher import UnknownStateError
+import addresses
+from bmconfigparser import BMConfigParser
+from debug import logger
+from helper_threading import StoppableThread
+from inventory import Inventory
 from network.connectionpool import BMConnectionPool
+from network.bmproto import BMProto
+from network.advanceddispatcher import UnknownStateError
 from queues import receiveDataQueue
-from threads import StoppableThread
+import protocol
+import state
 
-
-class ReceiveQueueThread(StoppableThread):
-    """This thread processes data received from the network
-    (which is done by the asyncore thread)"""
+class ReceiveQueueThread(threading.Thread, StoppableThread):
     def __init__(self, num=0):
-        super(ReceiveQueueThread, self).__init__(name="ReceiveQueue_%i" % num)
+        threading.Thread.__init__(self, name="ReceiveQueue_%i" %(num))
+        self.initStop()
+        self.name = "ReceiveQueue_%i" % (num)
+        logger.info("init receive queue thread %i", num)
 
     def run(self):
         while not self._stopped and state.shutdown == 0:
@@ -29,28 +35,27 @@ class ReceiveQueueThread(StoppableThread):
                 break
 
             # cycle as long as there is data
-            # methods should return False if there isn't enough data,
-            # or the connection is to be aborted
+            # methods should return False if there isn't enough data, or the connection is to be aborted
 
-            # state_* methods should return False if there isn't
-            # enough data, or the connection is to be aborted
+            # state_* methods should return False if there isn't enough data,
+            # or the connection is to be aborted
 
             try:
                 connection = BMConnectionPool().getConnectionByAddr(dest)
-            # connection object not found
+            # KeyError = connection object not found
             except KeyError:
                 receiveDataQueue.task_done()
                 continue
             try:
                 connection.process()
-            # state isn't implemented
-            except UnknownStateError:
+            # UnknownStateError = state isn't implemented
+            except (UnknownStateError):
                 pass
             except socket.error as err:
                 if err.errno == errno.EBADF:
                     connection.set_state("close", 0)
                 else:
-                    self.logger.error('Socket error: %s', err)
+                    logger.error("Socket error: %s", str(err))
             except:
-                self.logger.error('Error processing', exc_info=True)
+                logger.error("Error processing", exc_info=True)
             receiveDataQueue.task_done()
