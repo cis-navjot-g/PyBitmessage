@@ -1,30 +1,28 @@
-
-import time
-import threading
+"""
+A thread for creating addresses
+"""
 import hashlib
+import time
 from binascii import hexlify
+
+import defaults
+import highlevelcrypto
+import queues
+import shared
+import state
+import tr
+from addresses import decodeAddress, encodeAddress, encodeVarint
+from bmconfigparser import BMConfigParser
+from fallback import RIPEMD160Hash
+from network import StoppableThread
 from pyelliptic import arithmetic
 from pyelliptic.openssl import OpenSSL
 
-import tr
-import queues
-import state
-import shared
-import defaults
-import highlevelcrypto
-from bmconfigparser import BMConfigParser
-from debug import logger
-from addresses import decodeAddress, encodeAddress, encodeVarint
-from fallback import RIPEMD160Hash
-from helper_threading import StoppableThread
 
+class addressGenerator(StoppableThread):
+    """A thread for creating addresses"""
 
-class addressGenerator(threading.Thread, StoppableThread):
-
-    def __init__(self):
-        # QThread.__init__(self, parent)
-        threading.Thread.__init__(self, name="addressGenerator")
-        self.initStop()
+    name = "addressGenerator"
 
     def stopThread(self):
         try:
@@ -34,6 +32,12 @@ class addressGenerator(threading.Thread, StoppableThread):
         super(addressGenerator, self).stopThread()
 
     def run(self):
+        """
+        Process the requests for addresses generation
+        from `.queues.addressGeneratorQueue`
+        """
+        # pylint: disable=too-many-locals, too-many-branches
+        # pylint: disable=protected-access, too-many-statements
         while state.shutdown == 0:
             queueValue = queues.addressGeneratorQueue.get()
             nonceTrialsPerByte = 0
@@ -89,12 +93,12 @@ class addressGenerator(threading.Thread, StoppableThread):
             elif queueValue[0] == 'stopThread':
                 break
             else:
-                logger.error(
+                self.logger.error(
                     'Programming error: A structure with the wrong number'
                     ' of values was passed into the addressGeneratorQueue.'
                     ' Here is the queueValue: %r\n', queueValue)
             if addressVersionNumber < 3 or addressVersionNumber > 4:
-                logger.error(
+                self.logger.error(
                     'Program error: For some reason the address generator'
                     ' queue has been given a request to create at least'
                     ' one version %s address which it cannot do.\n',
@@ -115,9 +119,7 @@ class addressGenerator(threading.Thread, StoppableThread):
                     defaults.networkDefaultPayloadLengthExtraBytes
             if command == 'createRandomAddress':
                 queues.UISignalQueue.put((
-                    'updateStatusBar',
-                    tr._translate(
-                        "MainWindow", "Generating one new address")
+                    'updateStatusBar', ""
                 ))
                 # This next section is a little bit strange. We're going
                 # to generate keys over and over until we find one
@@ -143,10 +145,10 @@ class addressGenerator(threading.Thread, StoppableThread):
                         '\x00' * numberOfNullBytesDemandedOnFrontOfRipeHash
                     ):
                         break
-                logger.info(
+                self.logger.info(
                     'Generated address with ripe digest: %s', hexlify(ripe))
                 try:
-                    logger.info(
+                    self.logger.info(
                         'Address generator calculated %s addresses at %s'
                         ' addresses per second before finding one with'
                         ' the correct ripe-prefix.',
@@ -174,7 +176,6 @@ class addressGenerator(threading.Thread, StoppableThread):
                     privEncryptionKey).digest()).digest()[0:4]
                 privEncryptionKeyWIF = arithmetic.changebase(
                     privEncryptionKey + checksum, 256, 58)
-
                 BMConfigParser().add_section(address)
                 BMConfigParser().set(address, 'label', label)
                 BMConfigParser().set(address, 'enabled', 'true')
@@ -194,11 +195,7 @@ class addressGenerator(threading.Thread, StoppableThread):
                 queues.apiAddressGeneratorReturnQueue.put(address)
 
                 queues.UISignalQueue.put((
-                    'updateStatusBar',
-                    tr._translate(
-                        "MainWindow",
-                        "Done generating address. Doing work necessary"
-                        " to broadcast it...")
+                    'updateStatusBar', ""
                 ))
                 queues.UISignalQueue.put(('writeNewAddressToTable', (
                     label, address, streamNumber)))
@@ -213,8 +210,8 @@ class addressGenerator(threading.Thread, StoppableThread):
             elif command == 'createDeterministicAddresses' \
                     or command == 'getDeterministicAddress' \
                     or command == 'createChan' or command == 'joinChan':
-                if len(deterministicPassphrase) == 0:
-                    logger.warning(
+                if not deterministicPassphrase:
+                    self.logger.warning(
                         'You are creating deterministic'
                         ' address(es) using a blank passphrase.'
                         ' Bitmessage will do it but it is rather stupid.')
@@ -267,10 +264,10 @@ class addressGenerator(threading.Thread, StoppableThread):
                         ):
                             break
 
-                    logger.info(
+                    self.logger.info(
                         'Generated address with ripe digest: %s', hexlify(ripe))
                     try:
-                        logger.info(
+                        self.logger.info(
                             'Address generator calculated %s addresses'
                             ' at %s addresses per second before finding'
                             ' one with the correct ripe-prefix.',
@@ -320,7 +317,7 @@ class addressGenerator(threading.Thread, StoppableThread):
                             addressAlreadyExists = True
 
                         if addressAlreadyExists:
-                            logger.info(
+                            self.logger.info(
                                 '%s already exists. Not adding it again.',
                                 address
                             )
@@ -333,7 +330,7 @@ class addressGenerator(threading.Thread, StoppableThread):
                                 ).arg(address)
                             ))
                         else:
-                            logger.debug('label: %s', label)
+                            self.logger.debug('label: %s', label)
                             BMConfigParser().set(address, 'label', label)
                             BMConfigParser().set(address, 'enabled', 'true')
                             BMConfigParser().set(address, 'decoy', 'false')
@@ -362,7 +359,7 @@ class addressGenerator(threading.Thread, StoppableThread):
                                 address)
                             shared.myECCryptorObjects[ripe] = \
                                 highlevelcrypto.makeCryptor(
-                                hexlify(potentialPrivEncryptionKey))
+                                    hexlify(potentialPrivEncryptionKey))
                             shared.myAddressesByHash[ripe] = address
                             tag = hashlib.sha512(hashlib.sha512(
                                 encodeVarint(addressVersionNumber) +

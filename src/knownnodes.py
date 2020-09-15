@@ -3,6 +3,7 @@ Manipulations with knownNodes dictionary.
 """
 
 import json
+import logging
 import os
 import pickle
 import threading
@@ -10,33 +11,33 @@ import time
 
 import state
 from bmconfigparser import BMConfigParser
-from debug import logger
-from helper_bootstrap import dns
+from network.node import Peer
 
 knownNodesLock = threading.Lock()
+"""Thread lock for knownnodes modification"""
 knownNodes = {stream: {} for stream in range(1, 4)}
+"""The dict of known nodes for each stream"""
 
 knownNodesTrimAmount = 2000
+"""trim stream knownnodes dict to this length"""
 
-# forget a node after rating is this low
 knownNodesForgetRating = -0.5
+"""forget a node after rating is this low"""
 
 knownNodesActual = False
 
-DEFAULT_NODES = (
-    state.Peer('5.45.99.75', 8444),
-    state.Peer('75.167.159.54', 8444),
-    state.Peer('95.165.168.168', 8444),
-    state.Peer('85.180.139.241', 8444),
-    state.Peer('158.222.217.190', 8080),
-    state.Peer('178.62.12.187', 8448),
-    state.Peer('24.188.198.204', 8111),
-    state.Peer('109.147.204.113', 1195),
-    state.Peer('178.11.46.221', 8444)
-)
+logger = logging.getLogger('default')
 
-DEFAULT_NODES_ONION = (
-    state.Peer('quzwelsuziwqgpt2.onion', 8444),
+DEFAULT_NODES = (
+    Peer('5.45.99.75', 8444),
+    Peer('75.167.159.54', 8444),
+    Peer('95.165.168.168', 8444),
+    Peer('85.180.139.241', 8444),
+    Peer('158.222.217.190', 8080),
+    Peer('178.62.12.187', 8448),
+    Peer('24.188.198.204', 8111),
+    Peer('109.147.204.113', 1195),
+    Peer('178.11.46.221', 8444)
 )
 
 
@@ -62,20 +63,17 @@ def json_deserialize_knownnodes(source):
     for node in json.load(source):
         peer = node['peer']
         info = node['info']
-        peer = state.Peer(str(peer['host']), peer.get('port', 8444))
+        peer = Peer(str(peer['host']), peer.get('port', 8444))
         knownNodes[node['stream']][peer] = info
 
-        if (
-            not (knownNodesActual or info.get('self')) and
-            peer not in DEFAULT_NODES and
-            peer not in DEFAULT_NODES_ONION
-        ):
+        if not (knownNodesActual
+                or info.get('self')) and peer not in DEFAULT_NODES:
             knownNodesActual = True
 
 
 def pickle_deserialize_old_knownnodes(source):
     """
-    Unpickle source and reorganize knownnodes dict if it's in old format
+    Unpickle source and reorganize knownnodes dict if it has old format
     the old format was {Peer:lastseen, ...}
     the new format is {Peer:{"lastseen":i, "rating":f}}
     """
@@ -88,6 +86,7 @@ def pickle_deserialize_old_knownnodes(source):
 
 
 def saveKnownNodes(dirName=None):
+    """Save knownnodes to filesystem"""
     if dirName is None:
         dirName = state.appdata
     with knownNodesLock:
@@ -96,21 +95,24 @@ def saveKnownNodes(dirName=None):
 
 
 def addKnownNode(stream, peer, lastseen=None, is_self=False):
+    """Add a new node to the dict"""
     knownNodes[stream][peer] = {
         "lastseen": lastseen or time.time(),
-        "rating": 0,
+        "rating": 1 if is_self else 0,
         "self": is_self,
     }
 
 
-def createDefaultKnownNodes(onion=False):
+def createDefaultKnownNodes():
+    """Creating default Knownnodes"""
     past = time.time() - 2418600  # 28 days - 10 min
-    for peer in DEFAULT_NODES_ONION if onion else DEFAULT_NODES:
+    for peer in DEFAULT_NODES:
         addKnownNode(1, peer, past)
     saveKnownNodes()
 
 
 def readKnownNodes():
+    """Load knownnodes from filesystem"""
     try:
         with open(state.appdata + 'knownnodes.dat', 'rb') as source:
             with knownNodesLock:
@@ -131,12 +133,13 @@ def readKnownNodes():
     if onionhostname and ".onion" in onionhostname:
         onionport = config.safeGetInt('bitmessagesettings', 'onionport')
         if onionport:
-            self_peer = state.Peer(onionhostname, onionport)
+            self_peer = Peer(onionhostname, onionport)
             addKnownNode(1, self_peer, is_self=True)
             state.ownAddresses[self_peer] = True
 
 
 def increaseRating(peer):
+    """Increase rating of a peer node"""
     increaseAmount = 0.1
     maxRating = 1
     with knownNodesLock:
@@ -151,6 +154,7 @@ def increaseRating(peer):
 
 
 def decreaseRating(peer):
+    """Decrease rating of a peer node"""
     decreaseAmount = 0.1
     minRating = -1
     with knownNodesLock:
@@ -165,6 +169,7 @@ def decreaseRating(peer):
 
 
 def trimKnownNodes(recAddrStream=1):
+    """Triming Knownnodes"""
     if len(knownNodes[recAddrStream]) < \
             BMConfigParser().safeGetInt("knownnodes", "maxnodes"):
         return
@@ -177,40 +182,38 @@ def trimKnownNodes(recAddrStream=1):
             del knownNodes[recAddrStream][oldest]
 
 
+def dns():
+    """Add DNS names to knownnodes"""
+    for port in [8080, 8444]:
+        addKnownNode(
+            1, Peer('bootstrap%s.bitmessage.org' % port, port))
+
+
 def cleanupKnownNodes():
     """
     Cleanup knownnodes: remove old nodes and nodes with low rating
     """
     now = int(time.time())
     needToWriteKnownNodesToDisk = False
-    dns_done = False
-    spawnConnections = not BMConfigParser().safeGetBoolean(
-        'bitmessagesettings', 'dontconnect'
-    ) and BMConfigParser().safeGetBoolean(
-        'bitmessagesettings', 'sendoutgoingconnections')
 
     with knownNodesLock:
         for stream in knownNodes:
             if stream not in state.streamsInWhichIAmParticipating:
                 continue
             keys = knownNodes[stream].keys()
-            if len(keys) <= 1:  # leave at least one node
-                if not dns_done and spawnConnections:
-                    dns()
-                    dns_done = True
-                continue
             for node in keys:
+                if len(knownNodes[stream]) <= 1:  # leave at least one node
+                    break
                 try:
-                    # scrap old nodes
-                    if (now - knownNodes[stream][node]["lastseen"] >
-                            2419200):  # 28 days
+                    age = now - knownNodes[stream][node]["lastseen"]
+                    # scrap old nodes (age > 28 days)
+                    if age > 2419200:
                         needToWriteKnownNodesToDisk = True
                         del knownNodes[stream][node]
                         continue
-                    # scrap old nodes with low rating
-                    if (now - knownNodes[stream][node]["lastseen"] > 10800 and
-                        knownNodes[stream][node]["rating"] <=
-                            knownNodesForgetRating):
+                    # scrap old nodes (age > 3 hours) with low rating
+                    if (age > 10800 and knownNodes[stream][node]["rating"]
+                            <= knownNodesForgetRating):
                         needToWriteKnownNodesToDisk = True
                         del knownNodes[stream][node]
                         continue

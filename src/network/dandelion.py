@@ -1,11 +1,14 @@
+"""
+Dandelion class definition, tracks stages
+"""
+import logging
 from collections import namedtuple
-from random import choice, sample, expovariate
+from random import choice, expovariate, sample
 from threading import RLock
 from time import time
 
 import connectionpool
 import state
-from debug import logging
 from queues import invQueue
 from singleton import Singleton
 
@@ -20,9 +23,11 @@ MAX_STEMS = 2
 
 Stem = namedtuple('Stem', ['child', 'stream', 'timeout'])
 
+logger = logging.getLogger('default')
+
 
 @Singleton
-class Dandelion():
+class Dandelion:  # pylint: disable=old-style-class
     """Dandelion class for tracking stem/fluff stages."""
     def __init__(self):
         # currently assignable child stems
@@ -35,7 +40,8 @@ class Dandelion():
         self.refresh = time() + REASSIGN_INTERVAL
         self.lock = RLock()
 
-    def poissonTimeout(self, start=None, average=0):
+    @staticmethod
+    def poissonTimeout(start=None, average=0):
         """Generate deadline using Poisson distribution"""
         if start is None:
             start = time()
@@ -67,9 +73,10 @@ class Dandelion():
 
     def removeHash(self, hashId, reason="no reason specified"):
         """Switch inventory vector from stem to fluff mode"""
-        logging.debug(
-            "%s entering fluff mode due to %s.",
-            ''.join('%02x' % ord(i) for i in hashId), reason)
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug(
+                '%s entering fluff mode due to %s.',
+                ''.join('%02x' % ord(i) for i in hashId), reason)
         with self.lock:
             try:
                 del self.hashMap[hashId]
@@ -97,8 +104,8 @@ class Dandelion():
                 for k in (k for k, v in self.nodeMap.iteritems() if v is None):
                     self.nodeMap[k] = connection
                 for k, v in {
-                    k: v for k, v in self.hashMap.iteritems()
-                    if v.child is None
+                        k: v for k, v in self.hashMap.iteritems()
+                        if v.child is None
                 }.iteritems():
                     self.hashMap[k] = Stem(
                         connection, v.stream, self.poissonTimeout())
@@ -115,12 +122,13 @@ class Dandelion():
                 self.stem.remove(connection)
                 # active mappings to pointing to the removed node
                 for k in (
-                    k for k, v in self.nodeMap.iteritems() if v == connection
+                        k for k, v in self.nodeMap.iteritems()
+                        if v == connection
                 ):
                     self.nodeMap[k] = None
                 for k, v in {
-                    k: v for k, v in self.hashMap.iteritems()
-                    if v.child == connection
+                        k: v for k, v in self.hashMap.iteritems()
+                        if v.child == connection
                 }.iteritems():
                     self.hashMap[k] = Stem(
                         None, v.stream, self.poissonTimeout())

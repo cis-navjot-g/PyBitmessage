@@ -1,7 +1,11 @@
+"""
+SOCKS4a proxy module
+"""
+# pylint: disable=attribute-defined-outside-init
 import socket
 import struct
 
-from proxy import Proxy, ProxyError, GeneralProxyError
+from proxy import GeneralProxyError, Proxy, ProxyError
 
 
 class Socks4aError(ProxyError):
@@ -82,7 +86,7 @@ class Socks4aConnection(Socks4a):
             self.append_write_buf(self.ipaddr)
         except socket.error:
             # Well it's not an IP number,  so it's probably a DNS name.
-            if Proxy._remote_dns:
+            if self._remote_dns:
                 # Resolve remotely
                 rmtrslv = True
                 self.ipaddr = None
@@ -118,6 +122,7 @@ class Socks4aResolver(Socks4a):
         Socks4a.__init__(self, address=(self.host, self.port))
 
     def state_auth_done(self):
+        """Request connection to be made"""
         # Now we can request the actual connection
         self.append_write_buf(
             struct.pack('>BBH', 0x04, 0xF0, self.destination[1]))

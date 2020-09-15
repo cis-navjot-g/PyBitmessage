@@ -13,20 +13,31 @@ import unittest
 
 import knownnodes
 import state
+from bmconfigparser import BMConfigParser
 from helper_msgcoding import MsgEncode, MsgDecode
+from helper_startup import start_proxyconfig
 from network import asyncore_pollchoose as asyncore
-from network.tcp import TCPConnection
+from network.connectionpool import BMConnectionPool
+from network.node import Peer
+from network.tcp import Socks4aBMConnection, Socks5BMConnection, TCPConnection
 from queues import excQueue
+
+try:
+    import stem.version as stem_version
+except ImportError:
+    stem_version = None
+
 
 knownnodes_file = os.path.join(state.appdata, 'knownnodes.dat')
 
 
 def pickle_knownnodes():
+    """Generate old style pickled knownnodes.dat"""
     now = time.time()
     with open(knownnodes_file, 'wb') as dst:
         pickle.dump({
             stream: {
-                state.Peer(
+                Peer(
                     '%i.%i.%i.%i' % tuple([
                         random.randint(1, 255) for i in range(4)]),
                     8444): {'lastseen': now, 'rating': 0.1}
@@ -37,6 +48,7 @@ def pickle_knownnodes():
 
 
 def cleanup():
+    """Cleanup application files"""
     os.remove(knownnodes_file)
 
 
@@ -80,10 +92,12 @@ class TestCore(unittest.TestCase):
                 ' with no subject!' % e
             )
 
+    @unittest.skip('Bad environment for asyncore.loop')
     def test_tcpconnection(self):
         """initial fill script from network.tcp"""
+        BMConfigParser().set('bitmessagesettings', 'dontconnect', 'true')
         try:
-            for peer in (state.Peer("127.0.0.1", 8448),):
+            for peer in (Peer("127.0.0.1", 8448),):
                 direct = TCPConnection(peer)
                 while asyncore.socket_map:
                     print("loop, state = %s" % direct.state)
@@ -91,9 +105,17 @@ class TestCore(unittest.TestCase):
         except:
             self.fail('Exception in test loop')
 
-    def _wipe_knownnodes(self):
+    @staticmethod
+    def _wipe_knownnodes():
         with knownnodes.knownNodesLock:
             knownnodes.knownNodes = {stream: {} for stream in range(1, 4)}
+
+    @staticmethod
+    def _outdate_knownnodes():
+        with knownnodes.knownNodesLock:
+            for nodes in knownnodes.knownNodes.itervalues():
+                for node in nodes.itervalues():
+                    node['lastseen'] -= 2419205  # older than 28 days
 
     def test_knownnodes_pickle(self):
         """ensure that 3 nodes was imported for each stream"""
@@ -117,11 +139,10 @@ class TestCore(unittest.TestCase):
 
     def test_0_cleaner(self):
         """test knownnodes starvation leading to IndexError in Asyncore"""
-        for nodes in knownnodes.knownNodes.itervalues():
-            for node in nodes.itervalues():
-                node['lastseen'] -= 2419205  # older than 28 days
+        self._outdate_knownnodes()
         # time.sleep(303)  # singleCleaner wakes up every 5 min
         knownnodes.cleanupKnownNodes()
+        self.assertTrue(knownnodes.knownNodes[1])
         while True:
             try:
                 thread, exc = excQueue.get(block=False)
@@ -129,6 +150,71 @@ class TestCore(unittest.TestCase):
                 return
             if thread == 'Asyncore' and isinstance(exc, IndexError):
                 self.fail("IndexError because of empty knownNodes!")
+
+    def _initiate_bootstrap(self):
+        BMConfigParser().set('bitmessagesettings', 'dontconnect', 'true')
+        self._outdate_knownnodes()
+        knownnodes.addKnownNode(1, Peer('127.0.0.1', 8444), is_self=True)
+        knownnodes.cleanupKnownNodes()
+        time.sleep(2)
+
+    def _check_bootstrap(self):
+        _started = time.time()
+        BMConfigParser().remove_option('bitmessagesettings', 'dontconnect')
+        proxy_type = BMConfigParser().safeGet(
+            'bitmessagesettings', 'socksproxytype')
+        if proxy_type == 'SOCKS5':
+            connection_base = Socks5BMConnection
+        elif proxy_type == 'SOCKS4a':
+            connection_base = Socks4aBMConnection
+        else:
+            connection_base = TCPConnection
+        for _ in range(180):
+            time.sleep(1)
+            for peer, con in BMConnectionPool().outboundConnections.iteritems():
+                if not peer.host.startswith('bootstrap'):
+                    self.assertIsInstance(con, connection_base)
+                    self.assertNotEqual(peer.host, '127.0.0.1')
+                    return
+        self.fail(
+            'Failed to connect during %s sec' % (time.time() - _started))
+
+    def test_bootstrap(self):
+        """test bootstrapping"""
+        self._initiate_bootstrap()
+        self._check_bootstrap()
+
+    @unittest.skipUnless(stem_version, 'No stem, skipping tor dependent test')
+    def test_bootstrap_tor(self):
+        """test bootstrapping with tor"""
+        self._initiate_bootstrap()
+        BMConfigParser().set('bitmessagesettings', 'socksproxytype', 'stem')
+        start_proxyconfig()
+        self._check_bootstrap()
+
+    @unittest.skipUnless(stem_version, 'No stem, skipping tor dependent test')
+    def test_onionservicesonly(self):  # this should start after bootstrap
+        """
+        set onionservicesonly, wait for 3 connections and check them all
+        are onions
+        """
+        BMConfigParser().set('bitmessagesettings', 'socksproxytype', 'SOCKS5')
+        BMConfigParser().set('bitmessagesettings', 'onionservicesonly', 'true')
+        self._initiate_bootstrap()
+        BMConfigParser().remove_option('bitmessagesettings', 'dontconnect')
+        for _ in range(360):
+            time.sleep(1)
+            for n, peer in enumerate(BMConnectionPool().outboundConnections):
+                if n > 2:
+                    return
+                if (
+                    not peer.host.endswith('.onion')
+                    and not peer.host.startswith('bootstrap')
+                ):
+                    self.fail(
+                        'Found non onion hostname %s in outbound connections!'
+                        % peer.host)
+        self.fail('Failed to connect to at least 3 nodes within 360 sec')
 
 
 def run():

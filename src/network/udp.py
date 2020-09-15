@@ -1,23 +1,31 @@
-import time
+"""
+UDP protocol handler
+"""
+import logging
 import socket
+import time
 
-import state
 import protocol
+import state
 from bmproto import BMProto
-from debug import logger
+from node import Peer
 from objectracker import ObjectTracker
 from queues import receiveDataQueue
 
+logger = logging.getLogger('default')
 
-class UDPSocket(BMProto):
+
+class UDPSocket(BMProto):  # pylint: disable=too-many-instance-attributes
+    """Bitmessage protocol over UDP (class)"""
     port = 8444
     announceInterval = 60
 
     def __init__(self, host=None, sock=None, announcing=False):
+        # pylint: disable=bad-super-call
         super(BMProto, self).__init__(sock=sock)
         self.verackReceived = True
         self.verackSent = True
-        # TODO sort out streams
+        # .. todo:: sort out streams
         self.streams = [1]
         self.fullyEstablished = True
         self.connectedAt = 0
@@ -35,8 +43,8 @@ class UDPSocket(BMProto):
         else:
             self.socket = sock
             self.set_socket_reuse()
-        self.listening = state.Peer(*self.socket.getsockname())
-        self.destination = state.Peer(*self.socket.getsockname())
+        self.listening = Peer(*self.socket.getsockname())
+        self.destination = Peer(*self.socket.getsockname())
         ObjectTracker.__init__(self)
         self.connecting = False
         self.connected = True
@@ -44,6 +52,7 @@ class UDPSocket(BMProto):
         self.set_state("bm_header", expectBytes=protocol.Header.size)
 
     def set_socket_reuse(self):
+        """Set socket reuse option"""
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         try:
@@ -69,12 +78,12 @@ class UDPSocket(BMProto):
         if not self.local:
             return True
         remoteport = False
-        for seenTime, stream, services, ip, port in addresses:
+        for seenTime, stream, _, ip, port in addresses:
             decodedIP = protocol.checkIPAddress(str(ip))
             if stream not in state.streamsInWhichIAmParticipating:
                 continue
-            if (seenTime < time.time() - self.maxTimeOffset or
-                    seenTime > time.time() + self.maxTimeOffset):
+            if (seenTime < time.time() - self.maxTimeOffset
+                    or seenTime > time.time() + self.maxTimeOffset):
                 continue
             if decodedIP is False:
                 # if the address isn't local, interpret it as
@@ -86,9 +95,8 @@ class UDPSocket(BMProto):
             "received peer discovery from %s:%i (port %i):",
             self.destination.host, self.destination.port, remoteport)
         if self.local:
-            state.discoveredPeers[
-                state.Peer(self.destination.host, remoteport)
-            ] = time.time()
+            state.discoveredPeers[Peer(self.destination.host, remoteport)] = \
+                time.time()
         return True
 
     def bm_command_portcheck(self):
@@ -122,12 +130,9 @@ class UDPSocket(BMProto):
             logger.error("socket error: %s", e)
             return
 
-        self.destination = state.Peer(*addr)
+        self.destination = Peer(*addr)
         encodedAddr = protocol.encodeHost(addr[0])
-        if protocol.checkIPAddress(encodedAddr, True):
-            self.local = True
-        else:
-            self.local = False
+        self.local = bool(protocol.checkIPAddress(encodedAddr, True))
         # overwrite the old buffer to avoid mixing data and so that
         # self.local works correctly
         self.read_buf[0:] = recdata
@@ -139,6 +144,9 @@ class UDPSocket(BMProto):
             retval = self.socket.sendto(
                 self.write_buf, ('<broadcast>', self.port))
         except socket.error as e:
-            logger.error("socket error on sendato: %s", e)
+            logger.error("socket error on sendto: %s", e)
+            if e.errno == 101:
+                self.announcing = False
+                self.socket.close()
             retval = 0
         self.slice_write_buf(retval)
