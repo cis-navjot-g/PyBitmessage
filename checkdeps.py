@@ -44,9 +44,9 @@ EXTRAS_REQUIRE_DEPS = {
         # The packages needed for this requirement, by OS
         "OpenBSD": [""],
         "FreeBSD": [""],
-        "Debian": ["libcap-dev python-prctl"],
-        "Ubuntu": ["libcap-dev python-prctl"],
-        "Ubuntu 12": ["libcap-dev python-prctl"],
+        "Debian": ["python-prctl"],
+        "Ubuntu": ["python-prctl"],
+        "Ubuntu 12": ["python-prctl"],
         "openSUSE": [""],
         "Fedora": ["prctl"],
         "Guix": [""],
