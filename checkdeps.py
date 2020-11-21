@@ -44,9 +44,9 @@ EXTRAS_REQUIRE_DEPS = {
         # The packages needed for this requirement, by OS
         "OpenBSD": [""],
         "FreeBSD": [""],
-        "Debian": ["libcap-dev python-prctl"],
-        "Ubuntu": ["libcap-dev python-prctl"],
-        "Ubuntu 12": ["libcap-dev python-prctl"],
+        "Debian": [""],
+        "Ubuntu": [""],
+        "Ubuntu 12": [""],
         "openSUSE": [""],
         "Fedora": ["prctl"],
         "Guix": [""],
@@ -57,7 +57,9 @@ EXTRAS_REQUIRE_DEPS = {
 
 def detectPrereqs(missing=True):
     available = []
+    print('PACKAGES: ', PACKAGES)
     for module in PACKAGES:
+        print('module: ', module)
         try:
             import_module(module)
             if not missing:
@@ -69,6 +71,7 @@ def detectPrereqs(missing=True):
 
 
 def prereqToPackages():
+    print('line....................73')
     if not detectPrereqs():
         return
     print("%s %s" % (
@@ -77,6 +80,7 @@ def prereqToPackages():
 
 
 def compilerToPackages():
+    print('line....................82')
     if not detectOS() in COMPILING:
         return
     print("%s %s" % (
@@ -84,6 +88,7 @@ def compilerToPackages():
 
 
 def testCompiler():
+    print('line.......................90')
     if not HAVE_SETUPTOOLS:
         # silent, we can't test without setuptools
         return True
@@ -137,6 +142,7 @@ if prereqs:
 OPSYS = detectOS()
 CMD = PACKAGE_MANAGER[OPSYS] if OPSYS in PACKAGE_MANAGER else 'UNKNOWN_INSTALLER'
 for lhs, rhs in EXTRAS_REQUIRE.items():
+    print('lhs, rhs : ', lhs, rhs)
     if OPSYS is None:
         break
     if rhs and any([
