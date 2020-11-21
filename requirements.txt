@@ -1,3 +1,2 @@
-python-prctl=1.6.1
 psutil
 pycrypto
