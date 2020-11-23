@@ -1,3 +1,3 @@
-git+http://github.com/seveas/python-prctl
+python-prctl
 psutil
 pycrypto
