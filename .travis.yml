@@ -14,6 +14,6 @@ install:
   - ln -s src pybitmessage  # tests environment
   - python setup.py install
 script:
-  - python checkdeps.py
+  # - python checkdeps.py
   - xvfb-run src/bitmessagemain.py -t
   - python setup.py test
