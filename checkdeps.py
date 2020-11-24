@@ -71,7 +71,6 @@ def detectPrereqs(missing=True):
 
 
 def prereqToPackages():
-    # print('line....................73')
     if not detectPrereqs():
         return
     print("%s %s" % (
@@ -80,7 +79,6 @@ def prereqToPackages():
 
 
 def compilerToPackages():
-    # print('line....................82')
     if not detectOS() in COMPILING:
         return
     print("%s %s" % (
@@ -88,7 +86,6 @@ def compilerToPackages():
 
 
 def testCompiler():
-    # print('line.......................90')
     if not HAVE_SETUPTOOLS:
         # silent, we can't test without setuptools
         return True
@@ -142,25 +139,17 @@ if prereqs:
 OPSYS = detectOS()
 CMD = PACKAGE_MANAGER[OPSYS] if OPSYS in PACKAGE_MANAGER else 'UNKNOWN_INSTALLER'
 
-print('EXTRAS_REQUIRE_DEPS: ', EXTRAS_REQUIRE_DEPS)
 for lhs, rhs in EXTRAS_REQUIRE.items():
     if OPSYS is None:
         break
-    print('WWGG: ', any([EXTRAS_REQUIRE_DEPS[x][OPSYS] for x in rhs if x in EXTRAS_REQUIRE_DEPS]))
     if rhs and any([
         EXTRAS_REQUIRE_DEPS[x][OPSYS]
         for x in rhs
         if x in EXTRAS_REQUIRE_DEPS
     ]):
-        print('lhs, rhs : ', lhs, rhs)
-        # print('CMD: ', CMD)
-        # print('[xx for xx in EXTRAS_REQUIRE_DEPS[x][OPSYS]]: ', [xx for xx in EXTRAS_REQUIRE_DEPS[x][OPSYS]])
-        # print('[]: ', [for x in rhs if x in EXTRAS_REQUIRE_DEPS])
         try:
             import_module(lhs)
-            print('Try pass <<<<<<<<<<<<<Sucess>>>>>>>>>>>>>>>>')
         except Exception as e:
-            print('Except <<<<<<<<<<<<<<Fail>>>>>>>>>>>>>>>>>>>')
             rhs_cmd = ''.join([
                 CMD,
                 ' ',
@@ -172,7 +161,6 @@ for lhs, rhs in EXTRAS_REQUIRE.items():
                     if x in EXTRAS_REQUIRE_DEPS
                 ]),
             ])
-            print('MMMMMMM: ', lhs, rhs_cmd)
             print(
                 "Optional dependency `pip install .[{}]` would require `{}`"
                 " to be run as root".format(lhs, rhs_cmd))
