@@ -44,9 +44,9 @@ EXTRAS_REQUIRE_DEPS = {
         # The packages needed for this requirement, by OS
         "OpenBSD": [""],
         "FreeBSD": [""],
-        "Debian": ["libcap-dev python-prctl"],
-        "Ubuntu": ["libcap-dev python-prctl"],
-        "Ubuntu 12": ["libcap-dev python-prctl"],
+        "Debian": ["python-prctl"],
+        "Ubuntu": ["python-prctl"],
+        "Ubuntu 12": ["python-prctl"],
         "openSUSE": [""],
         "Fedora": ["prctl"],
         "Guix": [""],
@@ -144,34 +144,27 @@ CMD = PACKAGE_MANAGER[OPSYS] if OPSYS in PACKAGE_MANAGER else 'UNKNOWN_INSTALLER
 
 print('EXTRAS_REQUIRE_DEPS: ', EXTRAS_REQUIRE_DEPS)
 for lhs, rhs in EXTRAS_REQUIRE.items():
-    # print('lhs, rhs : ', lhs, rhs)
     if OPSYS is None:
         break
-    # print('WWGG: ', any([EXTRAS_REQUIRE_DEPS[x][OPSYS] for x in rhs if x in EXTRAS_REQUIRE_DEPS]))
+    print('WWGG: ', any([EXTRAS_REQUIRE_DEPS[x][OPSYS] for x in rhs if x in EXTRAS_REQUIRE_DEPS]))
     if rhs and any([
         EXTRAS_REQUIRE_DEPS[x][OPSYS]
         for x in rhs
         if x in EXTRAS_REQUIRE_DEPS
     ]):
-        # print('CMD: ', CMD)
-        # print('[xx for xx in EXTRAS_REQUIRE_DEPS[x][OPSYS]]: ', [xx for xx in EXTRAS_REQUIRE_DEPS[x][OPSYS]])
+        print('lhs, rhs : ', lhs, rhs)
+        print('CMD: ', CMD)
+        print('[[OPSYS]]: ', ' '.join([''. join([xx for xx in EXTRAS_REQUIRE_DEPS[x][OPSYS]])for x in rhs if x in EXTRAS_REQUIRE_DEPS]))
         # print('[]: ', [for x in rhs if x in EXTRAS_REQUIRE_DEPS])
         try:
             import lhs
-            # print('Try pass <<<<<<<<<<<<<Sucess>>>>>>>>>>>>>>>>')
+            print('Try pass <<<<<<<<<<<<<Sucess>>>>>>>>>>>>>>>>')
         except Exception as e:
-            # print('Except <<<<<<<<<<<<<<Fail>>>>>>>>>>>>>>>>>>>')
+            print('Except <<<<<<<<<<<<<<Fail>>>>>>>>>>>>>>>>>>>')
             rhs_cmd = ''.join([
                 CMD,
                 ' ',
-                ' '.join([
-                    ''. join([
-                        xx for xx in EXTRAS_REQUIRE_DEPS[x][OPSYS]
-                    ])
-                    for x in rhs
-                    if x in EXTRAS_REQUIRE_DEPS
-                ]),
-            ])
+                ' '.join([''. join([xx for xx in EXTRAS_REQUIRE_DEPS[x][OPSYS]])for x in rhs if x in EXTRAS_REQUIRE_DEPS]),])
             print('MMMMMMM: ', lhs, rhs_cmd)
             print(
                 "Optional dependency `pip install .[{}]` would require `{}`"
