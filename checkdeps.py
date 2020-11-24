@@ -71,7 +71,7 @@ def detectPrereqs(missing=True):
 
 
 def prereqToPackages():
-    print('line....................73')
+    # print('line....................73')
     if not detectPrereqs():
         return
     print("%s %s" % (
@@ -80,7 +80,7 @@ def prereqToPackages():
 
 
 def compilerToPackages():
-    print('line....................82')
+    # print('line....................82')
     if not detectOS() in COMPILING:
         return
     print("%s %s" % (
@@ -88,7 +88,7 @@ def compilerToPackages():
 
 
 def testCompiler():
-    print('line.......................90')
+    # print('line.......................90')
     if not HAVE_SETUPTOOLS:
         # silent, we can't test without setuptools
         return True
@@ -141,29 +141,41 @@ if prereqs:
 # Install the system dependencies of optional extras_require components
 OPSYS = detectOS()
 CMD = PACKAGE_MANAGER[OPSYS] if OPSYS in PACKAGE_MANAGER else 'UNKNOWN_INSTALLER'
+
+print('EXTRAS_REQUIRE_DEPS: ', EXTRAS_REQUIRE_DEPS)
 for lhs, rhs in EXTRAS_REQUIRE.items():
-    print('lhs, rhs : ', lhs, rhs)
+    # print('lhs, rhs : ', lhs, rhs)
     if OPSYS is None:
         break
+    # print('WWGG: ', any([EXTRAS_REQUIRE_DEPS[x][OPSYS] for x in rhs if x in EXTRAS_REQUIRE_DEPS]))
     if rhs and any([
         EXTRAS_REQUIRE_DEPS[x][OPSYS]
         for x in rhs
         if x in EXTRAS_REQUIRE_DEPS
     ]):
-        rhs_cmd = ''.join([
-            CMD,
-            ' ',
-            ' '.join([
-                ''. join([
-                    xx for xx in EXTRAS_REQUIRE_DEPS[x][OPSYS]
-                ])
-                for x in rhs
-                if x in EXTRAS_REQUIRE_DEPS
-            ]),
-        ])
-        print(
-            "Optional dependency `pip install .[{}]` would require `{}`"
-            " to be run as root".format(lhs, rhs_cmd))
+        # print('CMD: ', CMD)
+        # print('[xx for xx in EXTRAS_REQUIRE_DEPS[x][OPSYS]]: ', [xx for xx in EXTRAS_REQUIRE_DEPS[x][OPSYS]])
+        # print('[]: ', [for x in rhs if x in EXTRAS_REQUIRE_DEPS])
+        try:
+            import lhs
+            # print('Try pass <<<<<<<<<<<<<Sucess>>>>>>>>>>>>>>>>')
+        except Exception as e:
+            # print('Except <<<<<<<<<<<<<<Fail>>>>>>>>>>>>>>>>>>>')
+            rhs_cmd = ''.join([
+                CMD,
+                ' ',
+                ' '.join([
+                    ''. join([
+                        xx for xx in EXTRAS_REQUIRE_DEPS[x][OPSYS]
+                    ])
+                    for x in rhs
+                    if x in EXTRAS_REQUIRE_DEPS
+                ]),
+            ])
+            print('MMMMMMM: ', lhs, rhs_cmd)
+            print(
+                "Optional dependency `pip install .[{}]` would require `{}`"
+                " to be run as root".format(lhs, rhs_cmd))
 
 if (not compiler or prereqs) and OPSYS in PACKAGE_MANAGER:
     print("You can install the missing dependencies by running, as root:")
