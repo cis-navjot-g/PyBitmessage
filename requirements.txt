@@ -1,3 +1,4 @@
-python-prctl
+libcap-dev
+python_prctl
 psutil
 pycrypto
