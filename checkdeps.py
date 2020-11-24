@@ -153,18 +153,25 @@ for lhs, rhs in EXTRAS_REQUIRE.items():
         if x in EXTRAS_REQUIRE_DEPS
     ]):
         print('lhs, rhs : ', lhs, rhs)
-        print('CMD: ', CMD)
-        print('[[OPSYS]]: ', ' '.join([''. join([xx for xx in EXTRAS_REQUIRE_DEPS[x][OPSYS]])for x in rhs if x in EXTRAS_REQUIRE_DEPS]))
+        # print('CMD: ', CMD)
+        # print('[xx for xx in EXTRAS_REQUIRE_DEPS[x][OPSYS]]: ', [xx for xx in EXTRAS_REQUIRE_DEPS[x][OPSYS]])
         # print('[]: ', [for x in rhs if x in EXTRAS_REQUIRE_DEPS])
         try:
-            import lhs
+            import_module(lhs)
             print('Try pass <<<<<<<<<<<<<Sucess>>>>>>>>>>>>>>>>')
         except Exception as e:
             print('Except <<<<<<<<<<<<<<Fail>>>>>>>>>>>>>>>>>>>')
             rhs_cmd = ''.join([
                 CMD,
                 ' ',
-                ' '.join([''. join([xx for xx in EXTRAS_REQUIRE_DEPS[x][OPSYS]])for x in rhs if x in EXTRAS_REQUIRE_DEPS]),])
+                ' '.join([
+                    ''. join([
+                        xx for xx in EXTRAS_REQUIRE_DEPS[x][OPSYS]
+                    ])
+                    for x in rhs
+                    if x in EXTRAS_REQUIRE_DEPS
+                ]),
+            ])
             print('MMMMMMM: ', lhs, rhs_cmd)
             print(
                 "Optional dependency `pip install .[{}]` would require `{}`"
